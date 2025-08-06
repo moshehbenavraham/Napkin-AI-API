@@ -12,7 +12,7 @@ updates:
       - "dependencies"
       - "python"
     assignees:
-      - "xamgibson"
+      - "moshehbenavraham"
     commit-message:
       prefix: "chore"
       include: "scope"

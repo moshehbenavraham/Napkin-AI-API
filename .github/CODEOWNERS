@@ -2,23 +2,23 @@
 # These owners will be the default owners for everything in the repo
 
 # Global owners
-* @xamgibson
+* @moshehbenavraham
 
 # API client and core functionality
-/src/api/ @xamgibson
-/src/core/ @xamgibson
+/src/api/ @moshehbenavraham
+/src/core/ @moshehbenavraham
 
 # CLI interface
-/src/cli/ @xamgibson
+/src/cli/ @moshehbenavraham
 
 # Documentation
-/docs/ @xamgibson
-*.md @xamgibson
+/docs/ @moshehbenavraham
+*.md @moshehbenavraham
 
 # Configuration and CI/CD
-/.github/ @xamgibson
-/pyproject.toml @xamgibson
-/.env.example @xamgibson
+/.github/ @moshehbenavraham
+/pyproject.toml @moshehbenavraham
+/.env.example @moshehbenavraham
 
 # Tests
-/tests/ @xamgibson
+/tests/ @moshehbenavraham

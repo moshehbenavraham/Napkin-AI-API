@@ -1,59 +1,39 @@
 # API Reference
 
-## Python Client Library
+Overview
+This reference documents the Python client and high-level generator API implemented in the codebase today. It aligns with src/api/client.py, src/api/models.py, src/core/generator.py, and src/utils/config.py.
 
-### Installation
-
+Installation
 ```bash
-# Using Poetry (recommended)
+# Local development
 poetry install
-
-# Or using pip
+# Or
 pip install -r requirements.txt
 ```
 
-```python
-# Library imports
-from src.api.client import NapkinAPIClient
-from src.api.models import VisualRequest, VisualResponse, StatusResponse
-from src.core.generator import VisualGenerator
-from src.cli.commands import app as cli_app
-```
-
-### Quick Start
-
+Minimal Example (async)
 ```python
 import asyncio
 from src.api.client import NapkinAPIClient
-from src.api.models import VisualRequest
-from src.utils.config import get_settings
+from src.api.models import VisualRequest, OutputFormat
 
 async def main():
-    # Initialize client
     async with NapkinAPIClient() as client:
-        # Create visual request
-        request = VisualRequest(
+        req = VisualRequest(
             content="Machine Learning Pipeline",
-            style_id="vibrant-strokes",
-            format="svg",
+            format=OutputFormat.SVG,
+            style_id="vibrant-strokes",  # slug is also accepted downstream via generator; here pass ID or slug
             number_of_visuals=1,
             language="en-US",
-            transparent_background=False,
-            inverted_color=False,
         )
-        
-        # Submit request
-        response = await client.create_visual(request)
-        
-        # Wait for completion
-        status = await client.wait_for_completion(response.request_id)
-        
-        # Download files
+        resp = await client.create_visual(req)
+        status = await client.wait_for_completion(resp.request_id)
         if status.files:
-            for file_info in status.files:
-                if 'url' in file_info:
-                    content = await client.download_file_by_url(file_info['url'])
-                    # Save content to file
+            for f in status.files:
+                if "url" in f:
+                    data = await client.download_file_by_url(f["url"])
+                    with open("output.svg", "wb") as fh:
+                        fh.write(data)
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -61,17 +41,22 @@ if __name__ == "__main__":
 
 ## Core Classes
 
-### NapkinAPIClient
-
-Main async client for API interactions.
+NapkinAPIClient
+Main async client for API interactions. Settings are loaded from environment/.env if not provided.
 
 ```python
 class NapkinAPIClient:
-    def __init__(
-        self,
-        settings: Optional[Settings] = None
-    )
-    # settings loaded from environment if not provided
+    def __init__(self, settings: Optional[Settings] = None): ...
+    async def __aenter__(self): ...
+    async def __aexit__(self, exc_type, exc_val, exc_tb): ...
+    async def close(self): ...
+    async def create_visual(self, request: VisualRequest) -> VisualResponse: ...
+    async def get_status(self, request_id: str) -> StatusResponse: ...
+    async def wait_for_completion(self, request_id: str, poll_interval: Optional[float] = None, max_attempts: Optional[int] = None) -> StatusResponse: ...
+    async def download_file_by_url(self, url: str) -> bytes: ...
+    async def download_file_by_id(self, request_id: str, file_id: str) -> bytes: ...
+    async def save_file_by_url(self, url: str, output_dir: Union[str, Path], inferred_name: Optional[str] = None, request_id: Optional[str] = None, file_id: Optional[str] = None) -> Path: ...
+    def get_rate_limit_status(self) -> Optional[RateLimitInfo]: ...
 ```
 
 #### Methods
@@ -124,108 +109,39 @@ async def download_file_by_id(
 def get_rate_limit_status(self) -> Optional[RateLimitInfo]
 ```
 
-### VisualRequest
+VisualRequest
+Pydantic v2 request model with constraints. See src/api/models.py for full details.
 
-Pydantic v2 model for visual generation requests.
+Key fields
+- content: str (1..10000)
+- format: "svg" | "png"
+- style_id: Optional[str] (slug or ID)
+- language: BCP 47 (e.g., en-US)
+- number_of_visuals: 1..4
+- transparent_background / inverted_color: bool
+- width / height: PNG-only, 100..4096
+- visual_id / visual_ids / visual_query / visual_queries: mutually exclusive visual selection helpers
 
-```python
-from pydantic import BaseModel, Field
-from typing import Optional
-from src.api.models import OutputFormat
+Validation
+- width/height only when format=png
+- non-empty lists for visual_ids/visual_queries when provided
 
-class VisualRequest(BaseModel):
-    # Required
-    content: str = Field(..., min_length=1, max_length=10000)
-    
-    # Format
-    format: OutputFormat = Field(default=OutputFormat.SVG)
-    
-    # Optional context
-    context_before: Optional[str] = Field(default=None, max_length=5000)
-    context_after: Optional[str] = Field(default=None, max_length=5000)
-    
-    # Style and appearance
-    style_id: Optional[str] = Field(default=None)
-    language: str = Field(default="en-US")
-    number_of_visuals: int = Field(default=1, ge=1, le=4)
-    transparent_background: bool = Field(default=False)
-    inverted_color: bool = Field(default=False)
-    
-    # PNG dimensions (only when format="png")
-    width: Optional[int] = Field(default=None, ge=100, le=4096)
-    height: Optional[int] = Field(default=None, ge=100, le=4096)
-```
+VisualResponse
+Response envelope capturing request_id, status, timestamps, and files.
 
-### VisualResponse
+Important properties
+- is_completed / is_failed / is_expired / is_terminal booleans
 
-Response model for visual creation.
+StatusResponse
+Lightweight status view with:
+- request_id, status, progress, message, files_ready, files_total, error
+- files: optional raw list from API (generated_files/files/urls normalized by client)
 
-```python
-from pydantic import BaseModel, Field
-from datetime import datetime
-from typing import List, Optional
-from src.api.models import RequestStatus, GeneratedFile
-
-class VisualResponse(BaseModel):
-    request_id: str
-    status: RequestStatus
-    created_at: datetime
-    files: List[GeneratedFile] = Field(default_factory=list)
-    message: Optional[str] = None
-    error: Optional[str] = None
-```
-
-### StatusResponse
-
-Response model for status checks.
-
-```python
-class StatusResponse(BaseModel):
-    request_id: str
-    status: RequestStatus
-    progress: Optional[float] = None
-    message: Optional[str] = None
-### GeneratedFile (API response for downloads)
-
-Expected fields returned by status (authoritative list):
-- id: string
-- url: string (complete download URL; expires; requires Authorization)
-- format: string ("svg" | "png")
-- filename: string (optional)
-- size_bytes: integer (optional)
-
-Example:
-```json
-{
-  "id": "426614174000-wdjvjhwv8",
-  "url": "https://api.napkin.ai/v1/visual/123e4567-e89b-12d3-a456-426614174000/file/426614174000-wdjvjhwv8",
-  "format": "svg",
-  "filename": "visual.svg",
-  "size_bytes": 245760
-}
-```
-
-Download handling notes:
-- Always include Authorization: Bearer <token> when using file URLs.
-- Prefer the provided url for downloads. If a legacy response omits url but includes id, fallback to GET /v1/visual/:request-id/file/:file-id
-- Filename precedence: Content-Disposition header > API filename field > synthesized "{request_id}_{file.id}.{ext}"
-- MIME handling: use Content-Type; fallback from format mapping ("svg" -> image/svg+xml, "png" -> image/png).
-- For large files, stream writes in chunks (default 64 KiB) to avoid memory spikes.
-
-Client usage for downloads:
-```python
-# Given a completed StatusResponse 'status'
-files = status.files or getattr(status, "generated_files", []) or []
-for f in files:
-    content = await NapkinAPIClient.download_file_by_url(f["url"])  # bytes-safe
-    # Preferred in CLI flows:
-    # await NapkinAPIClient.save_file_by_url(f["url"], output_dir)
-```
-    files_ready: int = 0
-    files_total: int = 0
-    files: Optional[List[Dict]] = None  # Raw file data from API
-    error: Optional[str] = None
-```
+Download Guidance
+- Prefer file.url from status; if absent, fallback to GET /v1/visual/:request-id/file/:file-id
+- Always send Authorization header when hitting file URLs
+- Filename precedence: Content-Disposition > API filename > synthesized name
+- Stream writes for large files; default chunk size 64 KiB
 
 ### GeneratedFile
 
@@ -247,26 +163,12 @@ class GeneratedFile:
 
 ## Error Handling
 
-### Exception Hierarchy
-
-```python
-class NapkinAPIError(Exception):
-    """Base exception for all API errors."""
-    def __init__(self, message: str, code: Optional[str] = None, details: Optional[dict] = None)
-
-class AuthenticationError(NapkinAPIError):
-    """API authentication failed (401)."""
-
-class RateLimitError(NapkinAPIError):
-    """Rate limit exceeded (429)."""
-    retry_after: int  # Seconds to wait
-
-class RequestError(NapkinAPIError):
-    """Invalid request parameters (400)."""
-
-class ProcessingError(NapkinAPIError):
-    """Visual generation failed or timed out."""
-```
+Exception Hierarchy
+- NapkinAPIError(message, code?, details?)
+- AuthenticationError (401)
+- RateLimitError (429, retry_after)
+- RequestError (400)
+- ProcessingError (failed/expired/timeout in long poll)
 
 ### Error Response Model
 
@@ -278,82 +180,62 @@ class ErrorResponse(BaseModel):
     timestamp: datetime
 ```
 
-## CLI Commands
+## CLI Reference
 
-### generate
+generate
 ```bash
 napkin generate "content" [OPTIONS]
-  --style, -s          Style name or ID
-  --format, -f         Output format (svg/png)
-  --output, -o         Output directory
-  --variations, -n     Number of variations (1-4)
-  --language, -l       Language code
-  --context-before     Context before content
-  --context-after      Context after content
-  --width, -w          PNG width (100-4096)
-  --height, -h         PNG height (100-4096)
-  --transparent        Transparent background
-  --inverted           Inverted colors
-  --debug              Enable debug logging
+  --style, -s            Style name or ID
+  --format, -f           svg|png
+  --output, -o           Output directory
+  --variations, -n       1..4
+  --language, -l         BCP 47 language
+  --context-before       Context before content
+  --context-after        Context after content
+  --width, -w            PNG width (100..4096)
+  --height, -h           PNG height (100..4096)
+  --transparent          Transparent background
+  --inverted             Inverted colors
+  --debug                Enable debug logging
 ```
 
-### styles
+styles
 ```bash
-napkin styles [OPTIONS]
-  --list               List all available styles
-  --category           Filter by category
-  --show               Show details for a style
+napkin styles --list
+napkin styles --category colorful
 ```
 
-### config
+config
 ```bash
-napkin config [OPTIONS]
-  --show               Show current configuration
-  --check              Validate configuration
+napkin config --show
+napkin config --check
 ```
 
-### version
+version
 ```bash
-napkin version        Show version information
+napkin version
 ```
 
 ## Configuration
 
-### Settings Management
+Settings Management
+See src/utils/config.py (Pydantic BaseSettings). Key environment variables:
 
-```python
-from src.utils.config import Settings, get_settings
+Required
+- NAPKIN_API_TOKEN
 
-class Settings(BaseSettings):
-    # Required
-    api_token: SecretStr
-    
-    # API configuration
-    api_base_url: str = "https://api.napkin.ai"
-    api_version: str = "v1"
-    
-    # Defaults for generation
-    default_style: str = "vibrant-strokes"
-    default_format: str = "svg"
-    default_language: str = "en-US"
-    default_variations: int = 1
-    
-    # Storage paths
-    storage_path: Path = Path("./data/visuals")
-    database_path: Path = Path("./data/database/napkin.db")
-    
-    # Performance settings
-    max_retries: int = 3
-    timeout_seconds: int = 30
-    poll_interval_seconds: float = 2.0
-    max_poll_attempts: int = 30
-    
-    # Display settings
-    log_level: str = "INFO"
-    debug_mode: bool = False
-    use_colors: bool = True
-    show_progress: bool = True
-```
+Optional (common)
+- NAPKIN_API_BASE_URL (default https://api.napkin.ai)
+- NAPKIN_API_VERSION (default v1)
+- NAPKIN_DEFAULT_STYLE (default vibrant-strokes)
+- NAPKIN_DEFAULT_FORMAT (default svg)
+- NAPKIN_DEFAULT_LANGUAGE (default en-US)
+- NAPKIN_DEFAULT_VARIATIONS (default 1)
+- NAPKIN_STORAGE_PATH (default ./data/visuals)
+- NAPKIN_TIMEOUT_SECONDS (default 30)
+- NAPKIN_POLL_INTERVAL_SECONDS (default 2.0)
+- NAPKIN_MAX_POLL_ATTEMPTS (default 30)
+- NAPKIN_LOG_LEVEL (INFO|DEBUG|WARNING|ERROR|CRITICAL)
 
 ### Environment Variables
 
@@ -368,24 +250,10 @@ NAPKIN_LOG_LEVEL=DEBUG
 
 ## Utilities
 
-### Style Constants
-
+Styles
 ```python
-from src.utils.constants import STYLES, list_style_names, get_style_by_name
-
-# Available style categories
-STYLE_CATEGORIES = {
-    "colorful": [...],
-    "casual": [...],
-    "hand-drawn": [...],
-    "formal": [...],
-    "monochrome": [...],
-}
-
-# Get all style names
+from src.utils.constants import STYLES, list_style_names, get_style_by_name, get_styles_by_category
 style_names = list_style_names()
-
-# Get style info
 style = get_style_by_name("vibrant-strokes")
 ```
 
@@ -448,15 +316,16 @@ if __name__ == "__main__":
 
 ```python
 import asyncio
-from src.api.client import NapkinAPIClient, AuthenticationError, RateLimitError
-from src.api.models import VisualRequest
+from src.api.client import NapkinAPIClient, AuthenticationError, RateLimitError, ProcessingError
+from src.api.models import VisualRequest, OutputFormat
 
 async def safe_generate():
     try:
         async with NapkinAPIClient() as client:
             request = VisualRequest(
                 content="Data Flow Diagram",
-                style_id="sketch-notes"
+                style_id="sketch-notes",
+                format=OutputFormat.SVG,
             )
             response = await client.create_visual(request)
             status = await client.wait_for_completion(response.request_id)
@@ -465,6 +334,8 @@ async def safe_generate():
         print("Invalid API token")
     except RateLimitError as e:
         print(f"Rate limited. Retry after {e.retry_after} seconds")
+    except ProcessingError as e:
+        print(f"Processing failed: {e}")
     except Exception as e:
         print(f"Error: {e}")
 
@@ -536,29 +407,16 @@ mypy src/
 
 ## Rate Limiting
 
-### RateLimitInfo Model
+RateLimitInfo
+- limit, remaining, reset (datetime), retry_after (seconds, optional)
 
-```python
-class RateLimitInfo(BaseModel):
-    limit: int
-    remaining: int
-    reset: Optional[datetime]
-    retry_after: Optional[int]
-```
-
-### Handling Rate Limits
-
+Handling Rate Limits
 ```python
 async with NapkinAPIClient() as client:
-    # Make request
     response = await client.create_visual(request)
-    
-    # Check rate limit status
-    rate_info = client.get_rate_limit_status()
-    if rate_info and rate_info.remaining < 10:
-        print(f"Warning: Only {rate_info.remaining} requests remaining")
-        if rate_info.reset:
-            print(f"Reset at: {rate_info.reset}")
+    info = client.get_rate_limit_status()
+    if info and info.remaining < 10:
+        print(f"Remaining: {info.remaining}, reset: {info.reset}")
 ```
 
 ## Available Styles
@@ -590,65 +448,40 @@ async with NapkinAPIClient() as client:
 
 ## Additional Resources
 
-- **[README.md](../README.md)** - Getting started guide
-- **[USAGE.md](USAGE.md)** - Detailed CLI usage examples
-- **[SETUP.md](SETUP.md)** - Installation and configuration
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Development guidelines
-- **[PRD.md](PRD.md)** - Product requirements and roadmap
-- **[napkin_ai_api.md](napkin_ai_api.md)** - Napkin API specifications
-#### End-to-end verification steps
+- README.md (project root) — Overview and quick start
+- docs/USAGE.md — CLI usage
+- docs/SETUP.md — Installation and configuration
+- docs/PRD.md — Roadmap (may include future features)
+- docs/NAPKIN_AI_API.md — API specification and styles
 
-Manual verification (Windows CMD - copy/paste):
+Verification Snippets (Windows CMD)
 ```bat
-:: 1) Create a request
+:: Create a request
 curl -sS -X POST "https://api.napkin.ai/v1/visual" ^
   -H "Authorization: Bearer %NAPKIN_API_TOKEN%" ^
   -H "Content-Type: application/json" ^
   -H "Accept: application/json" ^
   -d "{\"format\":\"svg\",\"content\":\"Test visual\"}"
 
-:: 2) Poll status (replace with actual request ID)
+:: Poll status
 set ID=REPLACE_WITH_REQUEST_ID
 for /l %i in (1,1,30) do (
   curl -sS -H "Authorization: Bearer %NAPKIN_API_TOKEN%" "https://api.napkin.ai/v1/visual/%ID%/status"
   timeout /t 3 >NUL
 )
 
-:: 3) Download the first generated file by URL
+:: Download by URL
 set URL=REPLACE_WITH_FILE_URL
 curl -L "%URL%" -H "Authorization: Bearer %NAPKIN_API_TOKEN%" --output out.svg
-
-:: 4) Inspect headers for filename/MIME
-curl -I -L "%URL%" -H "Authorization: Bearer %NAPKIN_API_TOKEN%"
 ```
 
-Automated tests (pytest):
-- Unit tests:
-  - Parse Content-Disposition (filename*, RFC 5987) and fallback to filename
-  - MIME fallback to file.format when Content-Type missing
-  - Synthesized filename correctness
-- Integration (httpx+respx or responses):
-  - Status returns generated_files with url; download returns 200 + Content-Disposition -> saves with correct name
-  - Legacy: status.files instead of generated_files -> still downloads
-  - Fallback: no url but id present -> GET /v1/visual/:request-id/file/:file-id works
-  - Errors: 401/403, 404/410, 429 with retry, unexpected Content-Type
-- Performance:
-  - Verify streamed chunk writes (64 KiB default), not full-buffer memory usage
-```
-
-Configuration and environment variables:
-- Required:
-  - NAPKIN_API_TOKEN
+Environment variables
+- Required: NAPKIN_API_TOKEN
 - Optional:
   - NAPKIN_DOWNLOAD_CHUNK_SIZE (default 65536)
   - NAPKIN_DOWNLOAD_OVERWRITE (default false)
-  - NAPKIN_FILE_LOGGING (default false)
-```
 
-Backwards compatibility / migration notes:
-- Continue supporting both shapes:
-  - status.generated_files (preferred)
-  - status.files (legacy)
-- Prefer file.url for download; fallback to GET /v1/visual/:request-id/file/:file-id when url is absent
-- Do not change public method signatures; document filename/MIME precedence rules
-```
+Compatibility Notes
+- status.generated_files preferred; status.files supported
+- Prefer file.url; fallback to GET /v1/visual/:request-id/file/:file-id
+- Filename/MIME precedence documented above
