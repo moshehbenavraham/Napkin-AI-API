@@ -54,8 +54,8 @@ logs/*
 .env.local
 .env.production
 .env.*.local
-config/local.json
-config/production.json
+config/*
+!config/.gitkeep
 
 # Testing
 .coverage
