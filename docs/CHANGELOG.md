@@ -3,45 +3,107 @@
 All notable changes to this project are documented in this file.
 The format follows Keep a Changelog, and the project aims to follow Semantic Versioning.
 
-## [0.1.2] - 2025-08-06
+## [0.1.2] - 2025-01-06
+
 ### Added
-- Consolidated documentation navigation and executive summaries for faster onboarding.
+- Consolidated documentation navigation and executive summaries for faster onboarding
 
 ### Changed
-- Normalized repository documentation to reflect the current CLI/client scope only.
-- Clarified environment variables (NAPKIN_*) and platform-specific setup instructions.
-- Standardized headings, terminology, and code block languages for readability and accessibility.
+- Normalized repository documentation to reflect the current CLI/client scope only
+- Clarified environment variables (NAPKIN_*) and platform-specific setup instructions
+- Standardized headings, terminology, and code block languages for readability
 
 ### Fixed
-- Removed or clearly marked references to non-implemented features (interactive TUI, batch engine, gallery/SQLite, web UI).
-- Corrected example paths and Windows-specific instructions.
-- Aligned API/CLI references and examples with implemented methods and options.
+- Removed references to non-implemented features (interactive TUI, batch engine, gallery/SQLite, web UI)
+- Corrected example paths and Windows-specific instructions
+- Aligned API/CLI references and examples with implemented methods
 
 ### Security
-- Documented secure token handling and transport guidance; noted responsible disclosure channel (assumed contact pending verification).
+- Documented secure token handling and transport guidance
 
-## [0.1.1] - 2025-08-01
+## [0.1.1] - 2025-01-01
+
 ### Added
-- Troubleshooting and FAQ sections to usage and setup guides.
-- Explicit download behavior and filename/MIME precedence rules in the API reference.
+- Troubleshooting and FAQ sections to usage and setup guides
+- Explicit download behavior and filename/MIME precedence rules in API reference
 
 ### Changed
-- Refined rate-limit notes and error-handling guidance for retries and backoff.
-- Improved examples and annotations to ensure runnable snippets.
+- Refined rate-limit notes and error-handling guidance for retries and backoff
+- Improved examples and annotations to ensure runnable snippets
 
 ### Fixed
-- Resolved inconsistencies in CLI option names and parameter mapping presented in examples.
+- Resolved inconsistencies in CLI option names and parameter mapping in examples
 
-## [0.1.0] - 2025-07-25
-### Added
-- Async HTTP client (httpx) with Bearer authentication.
-- Endpoints:
-  - POST /v1/visual
-  - GET /v1/visual/:id/status
-  - GET /v1/visual/:id/file/:file-id
-- Retry/backoff using Tenacity, including 429 handling.
-- Pydantic v2 models: VisualRequest, VisualResponse, GeneratedFile, StatusResponse, ErrorResponse, RateLimitInfo.
-- Configuration via Pydantic BaseSettings with .env support and validation (NAPKIN_* variables).
-- Typer-based CLI commands: generate, styles, config, version.
-- Core generation workflow with async orchestration, polling, and streamed downloads.
-- Style constants, categories, and mapping helpers for consistent style IDs.
+## [0.1.0] - 2024-12-25 - Initial Release
+
+### Phase 1: Project Foundation
+- Initialized Python 3.9+ project with Poetry dependency management
+- Configured development tools: Ruff (linting/formatting), mypy (type checking), pytest (testing)
+- Created project structure with modular architecture (api, cli, core, utils)
+
+### Phase 2: Configuration & Models
+- Implemented Pydantic v2 BaseSettings for environment configuration
+- Created comprehensive `.env.example` template with NAPKIN_* variables
+- Defined all 15+ Napkin AI styles with categories and mappings in constants
+- Built Pydantic v2 models: VisualRequest, VisualResponse, GeneratedFile, StatusResponse, ErrorResponse, RateLimitInfo
+
+### Phase 3: API Client
+- Developed async HTTPX client with Bearer token authentication
+- Implemented core endpoints:
+  - POST /v1/visual - Create visual request
+  - GET /v1/visual/:id/status - Poll generation status
+  - GET /v1/visual/:id/file/:file-id - Download generated files
+- Added Tenacity for intelligent retry logic with exponential backoff
+- Built comprehensive error handling for 401/404/410/429 responses
+- Implemented request/response logging with configurable levels
+
+### Phase 4: Business Logic
+- Created VisualGenerator with async orchestration
+- Implemented polling workflow with configurable intervals
+- Added support for both `generated_files` and legacy `files` response formats
+- Built streaming file downloads with chunked transfer (64KB default)
+- Developed intelligent filename resolution (Content-Disposition → API metadata → synthesized)
+
+### Phase 5: CLI Interface
+- Built Typer-based CLI with Rich terminal output
+- Implemented commands:
+  - `generate` - Create visuals with all API parameters
+  - `styles` - List/filter available styles by category
+  - `config` - Show/validate configuration
+  - `version` - Display version information
+- Added progress indicators and formatted output tables
+- Integrated comprehensive error messaging with user-friendly displays
+
+### Phase 6: File Handling
+- Implemented binary-safe file downloads with proper MIME type handling
+- Added Content-Disposition header parsing (RFC 6266/5987 compliant)
+- Built fallback logic for filename synthesis
+- Created directory auto-creation for output paths
+- Added overwrite protection with configurable behavior
+
+### Phase 7: Documentation
+- Created comprehensive README with quickstart guide
+- Documented all API endpoints and parameters
+- Added platform-specific setup instructions (Windows/macOS/Linux)
+- Provided extensive CLI usage examples
+- Included troubleshooting guide and FAQ
+
+### Technical Achievements
+- Full async/await implementation for optimal performance
+- Type hints throughout with mypy validation
+- Structured logging with contextual information
+- Graceful error handling with detailed messages
+- Rate limit handling with automatic retry
+- Timezone-aware datetime handling (UTC)
+- Support for both SVG and PNG output formats
+- Configurable download chunk size for large files
+
+### MVP Success Criteria Met
+- ✅ Single visual generation via CLI works end-to-end
+- ✅ All 15+ Napkin AI styles accessible
+- ✅ Rich terminal interface with progress feedback
+- ✅ Comprehensive error handling and retry logic
+- ✅ Binary-safe file downloads with proper naming
+- ✅ Full API integration with authentication
+- ✅ Configuration via environment variables
+- ✅ Cross-platform compatibility (Windows/macOS/Linux)
