@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions & Discussions
+    url: https://github.com/xamgibson/Napkin-AI-API/discussions
+    about: Please ask and answer questions here
+  - name: Napkin AI Documentation
+    url: https://docs.napkin.ai/
+    about: Check the official Napkin AI documentation

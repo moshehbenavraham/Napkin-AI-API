@@ -1,0 +1,69 @@
+name: Feature Request
+description: Suggest an idea for this project
+title: "[Feature]: "
+labels: ["enhancement"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please provide as much detail as possible.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Is your feature request related to a problem?
+      description: A clear and concise description of what the problem is.
+      placeholder: "I'm always frustrated when..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Describe the solution you'd like
+      description: A clear and concise description of what you want to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Describe alternatives you've considered
+      description: A clear and concise description of any alternative solutions or features you've considered.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Related Roadmap Phase
+      description: Which roadmap phase does this relate to? (See docs/PRD.md)
+      options:
+        - Phase 1 - CLI Foundation
+        - Phase 2 - Interactive Mode
+        - Phase 3 - Batch Processing
+        - Phase 4 - Storage & Gallery
+        - Phase 5 - Monitoring & Analytics
+        - Phase 6 - Web UI
+        - Phase 7 - Workflow Automation
+        - Phase 8 - Team Collaboration
+        - Not Sure / Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: example
+    attributes:
+      label: Example use case
+      description: Provide an example of how this feature would be used
+      placeholder: |
+        napkin generate "My content" --new-feature
+        # Expected output...
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add any other context or screenshots about the feature request here.

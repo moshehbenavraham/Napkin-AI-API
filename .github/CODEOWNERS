@@ -1,0 +1,24 @@
+# CODEOWNERS for Napkin AI API
+# These owners will be the default owners for everything in the repo
+
+# Global owners
+* @xamgibson
+
+# API client and core functionality
+/src/api/ @xamgibson
+/src/core/ @xamgibson
+
+# CLI interface
+/src/cli/ @xamgibson
+
+# Documentation
+/docs/ @xamgibson
+*.md @xamgibson
+
+# Configuration and CI/CD
+/.github/ @xamgibson
+/pyproject.toml @xamgibson
+/.env.example @xamgibson
+
+# Tests
+/tests/ @xamgibson
