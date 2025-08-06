@@ -10,14 +10,20 @@ Prerequisites
 
 Install
 
-Local development (recommended)
+Local development with Poetry (recommended)
 ```bash
+# Install dependencies and the napkin CLI command
 poetry install
+
+# The napkin command is now available via poetry run
+poetry run napkin --help
 ```
 
-Pip
+Pip (alternative)
 ```bash
 pip install -r requirements.txt
+# Then use python main.py instead of napkin command
+python main.py --help
 ```
 
 Configuration
@@ -61,24 +67,49 @@ Supported environment variables
   - NAPKIN_MAX_POLL_ATTEMPTS (default 30)
   - NAPKIN_LOG_LEVEL (INFO|DEBUG|WARNING|ERROR|CRITICAL)
 
+Running the CLI
+
+With Poetry 2.0+, you have several options:
+
+```bash
+# Option 1: Use poetry run (recommended)
+poetry run napkin --help
+poetry run napkin generate "Your content"
+
+# Option 2: Activate the virtual environment
+source .venv/bin/activate  # Linux/Mac/WSL
+# or
+source $(poetry env info --path)/bin/activate
+# Now use napkin directly
+napkin --help
+
+# Option 3: Use the full path
+.venv/bin/napkin --help
+
+# Option 4: Use Python directly
+python main.py --help
+```
+
 Verification
 ```bash
 # Show version/help
-napkin version
-napkin --help
+poetry run napkin version
+poetry run napkin --help
 
 # Validate configuration
-napkin config --check
+poetry run napkin config --check
 
 # Generate a test visual
-napkin generate "Hello Napkin"
+poetry run napkin generate "Hello Napkin"
 ```
 
 Troubleshooting
-- Command not found (Windows): open a new terminal after setting PATH or use python -m to invoke the CLI.
-- Invalid token: ensure NAPKIN_API_TOKEN is exported or set in .env.
-- Permissions: ensure the storage path is writable; defaults to ./data/visuals.
-- Networking: verify outbound HTTPS to api.napkin.ai:443 is allowed.
+- Command not found: Use `poetry run napkin` or activate the virtual environment first with `source .venv/bin/activate`
+- Poetry shell not working: Poetry 2.0 removed the shell command. Use `source .venv/bin/activate` or `poetry run` instead
+- Invalid token: Ensure NAPKIN_API_TOKEN is exported or set in .env file
+- Permissions: Ensure the storage path is writable; defaults to ./data/visuals
+- Networking: Verify outbound HTTPS to api.napkin.ai:443 is allowed
+- Windows issues: Open a new terminal after setting PATH or use `python main.py` to invoke the CLI
 
 Assumptions
 - The project is used as a CLI from source while in development. Packaging to PyPI is out of scope at present. Remove this note when packaging is published and verified.

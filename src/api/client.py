@@ -9,7 +9,7 @@ import asyncio
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Optional, Union
 
 import httpx
 from tenacity import (
@@ -23,8 +23,6 @@ from tenacity import (
 from ..utils.config import Settings, get_settings
 from ..utils.constants import API_ENDPOINTS, HTTP_STATUS
 from .models import (
-    ErrorResponse,
-    GeneratedFile,
     RateLimitInfo,
     RequestStatus,
     StatusResponse,
@@ -38,8 +36,10 @@ logger = logging.getLogger(__name__)
 
 class NapkinAPIError(Exception):
     """Base exception for Napkin API errors."""
-    
-    def __init__(self, message: str, code: Optional[str] = None, details: Optional[dict] = None):
+
+    def __init__(
+        self, message: str, code: Optional[str] = None, details: Optional[dict] = None
+    ):
         super().__init__(message)
         self.code = code
         self.details = details
@@ -47,12 +47,13 @@ class NapkinAPIError(Exception):
 
 class AuthenticationError(NapkinAPIError):
     """Authentication failed."""
+
     pass
 
 
 class RateLimitError(NapkinAPIError):
     """Rate limit exceeded."""
-    
+
     def __init__(self, message: str, retry_after: int):
         super().__init__(message)
         self.retry_after = retry_after
@@ -60,28 +61,30 @@ class RateLimitError(NapkinAPIError):
 
 class RequestError(NapkinAPIError):
     """Request validation error."""
+
     pass
 
 
 class ProcessingError(NapkinAPIError):
     """Visual processing error."""
+
     pass
 
 
 class NapkinAPIClient:
     """Async client for Napkin AI API."""
-    
+
     def __init__(self, settings: Optional[Settings] = None):
         """
         Initialize API client.
-        
+
         Args:
             settings: Configuration settings. If None, loads from environment.
         """
         self.settings = settings or get_settings()
         self.base_url = f"{self.settings.api_base_url}/{self.settings.api_version}"
         self.headers = self.settings.get_headers()
-        
+
         # HTTP client with timeout
         # Allow optional client injection and granular timeouts
         self._owns_client = True
@@ -94,25 +97,27 @@ class NapkinAPIClient:
             ),
             headers=self.headers,
         )
-        
+
         # Rate limit tracking
         self.rate_limit_info: Optional[RateLimitInfo] = None
-    
+
     async def __aenter__(self):
         """Async context manager entry."""
         return self
-    
+
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Async context manager exit."""
         await self.close()
-    
+
     async def close(self):
         """Close HTTP client."""
         # Close only if owned by this instance
         if getattr(self, "_owns_client", True):
             await self.client.aclose()
-    
-    def _extract_rate_limit_info(self, response: httpx.Response) -> Optional[RateLimitInfo]:
+
+    def _extract_rate_limit_info(
+        self, response: httpx.Response
+    ) -> Optional[RateLimitInfo]:
         """Extract rate limit information from response headers."""
         try:
             headers = response.headers
@@ -142,7 +147,10 @@ class NapkinAPIClient:
                         try:
                             ra = int(retry_after_val)
                             # Use timezone-aware UTC
-                            reset = datetime.fromtimestamp(int(datetime.now(timezone.utc).timestamp()) + ra, tz=timezone.utc)
+                            reset = datetime.fromtimestamp(
+                                int(datetime.now(timezone.utc).timestamp()) + ra,
+                                tz=timezone.utc,
+                            )
                         except (ValueError, TypeError):
                             reset = None
 
@@ -154,16 +162,20 @@ class NapkinAPIClient:
                 except (ValueError, TypeError):
                     retry_after = None
 
-                return RateLimitInfo(
-                    limit=limit,
-                    remaining=remaining,
-                    reset=reset,
-                    retry_after=retry_after,
-                )
+                if reset is not None:
+                    return RateLimitInfo(
+                        limit=limit,
+                        remaining=remaining,
+                        reset=reset,
+                        retry_after=retry_after,
+                    )
+                else:
+                    # If reset is None, skip creating RateLimitInfo
+                    return None
         except Exception as e:
             logger.warning(f"Failed to parse rate limit headers: {e}")
         return None
-    
+
     def _handle_error_response(self, response: httpx.Response):
         """Handle API error responses."""
         try:
@@ -175,7 +187,7 @@ class NapkinAPIClient:
             error_msg = response.text or f"HTTP {response.status_code} error"
             error_code = None
             details = None
-        
+
         # Check for specific error types
         if response.status_code == HTTP_STATUS["unauthorized"]:
             raise AuthenticationError(error_msg, error_code, details)
@@ -186,7 +198,7 @@ class NapkinAPIClient:
             raise RequestError(error_msg, error_code, details)
         else:
             raise NapkinAPIError(error_msg, error_code, details)
-    
+
     @retry(
         retry=retry_if_exception_type(httpx.HTTPError),
         stop=stop_after_attempt(3),
@@ -201,67 +213,69 @@ class NapkinAPIClient:
     ) -> httpx.Response:
         """Make HTTP request with retry logic."""
         url = f"{self.base_url}{endpoint}"
-        
+
         logger.debug(f"{method} {url}")
-        
+
         response = await self.client.request(method, url, **kwargs)
-        
+
         # Update rate limit info
         self.rate_limit_info = self._extract_rate_limit_info(response)
-        
+
         # Handle errors
         if response.status_code >= 400:
             self._handle_error_response(response)
-        
+
         return response
-    
+
     async def create_visual(
         self,
         request: VisualRequest,
     ) -> VisualResponse:
         """
         Create a new visual generation request.
-        
+
         Args:
             request: Visual generation parameters.
-        
+
         Returns:
             VisualResponse with request ID and initial status.
-        
+
         Raises:
             NapkinAPIError: If request fails.
         """
         endpoint = API_ENDPOINTS["create_visual"]
-        
+
         # Prepare request data
         request_data = request.model_dump(exclude_none=True)
-        
+
         # Log request without leaking content
         try:
             content_len = len(getattr(request, "content", "") or "")
         except Exception:
             content_len = 0
         logger.info("Creating visual request (content_length=%d)", content_len)
-        
+
         # Make API call
         response = await self._make_request(
             "POST",
             endpoint,
             json=request_data,
         )
-        
+
         # Parse response
         response_data = response.json()
         logger.debug(f"Create visual response: {response_data}")
-        
+
         # Create response model
         return VisualResponse(
             request_id=response_data.get("id") or response_data.get("request_id"),
             status=RequestStatus(response_data.get("status", "pending")),
-            created_at=self._parse_iso8601(response_data["created_at"]) if "created_at" in response_data else datetime.now(timezone.utc),
+            created_at=self._parse_iso8601(response_data["created_at"])
+            if "created_at" in response_data
+            else datetime.now(timezone.utc),
             files=[],
         )
-    
+
     def _parse_iso8601(self, s: str) -> datetime:
         """Parse ISO8601 timestamps, supporting trailing 'Z', returning timezone-aware UTC on fallback."""
         try:
@@ -272,25 +286,25 @@ class NapkinAPIClient:
             return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
         except Exception:
             return datetime.now(timezone.utc)
-    
+
     async def get_status(
         self,
         request_id: str,
     ) -> StatusResponse:
         """
         Check status of a visual generation request.
-        
+
         Args:
             request_id: The request ID to check.
-        
+
         Returns:
             StatusResponse with current status and progress.
-        
+
         Raises:
             NapkinAPIError: If request fails.
         """
         endpoint = API_ENDPOINTS["get_status"].format(request_id=request_id)
-        
+
         # Make API call
         response = await self._make_request("GET", endpoint)
 
@@ -338,7 +352,7 @@ class NapkinAPIClient:
             status_resp.files = candidate  # type: ignore[assignment]
 
         return status_resp
-    
+
     async def download_file(
         self,
         request_id: str,
@@ -377,18 +391,27 @@ class NapkinAPIClient:
         async with self.client.stream("GET", url, headers=self.headers) as r:
             if r.status_code >= 400:
                 body = await r.aread()
-                resp = httpx.Response(status_code=r.status_code, headers=r.headers, content=body, request=r.request)
+                resp = httpx.Response(
+                    status_code=r.status_code,
+                    headers=r.headers,
+                    content=body,
+                    request=r.request,
+                )
                 self._handle_error_response(resp)
 
             # Determine filename
-            cd = r.headers.get("Content-Disposition", "") or r.headers.get("content-disposition", "")
+            cd = r.headers.get("Content-Disposition", "") or r.headers.get(
+                "content-disposition", ""
+            )
             filename = self._infer_filename_from_content_disposition(cd)
             if not filename:
                 filename = inferred_name
 
             if not filename:
                 # Try to infer from request/file/meta
-                ext = self._infer_extension_from_content_type(r.headers.get("Content-Type"))
+                ext = self._infer_extension_from_content_type(
+                    r.headers.get("Content-Type")
+                )
                 base = None
                 if request_id and file_id:
                     base = f"{request_id}_{file_id}"
@@ -400,7 +423,11 @@ class NapkinAPIClient:
                         base = Path(httpx.URL(url).path).name or "download"
                     except Exception:
                         base = "download"
-                filename = f"{base}.{ext}" if ext and not base.endswith(f".{ext}") else (base if base else "download")
+                filename = (
+                    f"{base}.{ext}"
+                    if ext and not base.endswith(f".{ext}")
+                    else (base if base else "download")
+                )
 
             # Prepare final path and overwrite policy
             dest = output_dir / filename
@@ -418,7 +445,9 @@ class NapkinAPIClient:
         logger.info("Saved file to %s", dest)
         return dest
 
-    async def _stream_or_bytes(self, url: str, save_path: Optional[Path]) -> Union[bytes, Path]:
+    async def _stream_or_bytes(
+        self, url: str, save_path: Optional[Path]
+    ) -> Union[bytes, Path]:
         """
         Helper to stream to disk if save_path is provided, otherwise return bytes.
         """
@@ -428,7 +457,12 @@ class NapkinAPIClient:
             async with self.client.stream("GET", url, headers=self.headers) as r:
                 if r.status_code >= 400:
                     body = await r.aread()
-                    resp = httpx.Response(status_code=r.status_code, headers=r.headers, content=body, request=r.request)
+                    resp = httpx.Response(
+                        status_code=r.status_code,
+                        headers=r.headers,
+                        content=body,
+                        request=r.request,
+                    )
                     self._handle_error_response(resp)
                 with save_path.open("wb") as f:
                     async for chunk in r.aiter_bytes():
@@ -441,7 +475,9 @@ class NapkinAPIClient:
             self._handle_error_response(resp)
         return resp.content
 
-    def _infer_extension_from_content_type(self, content_type: Optional[str]) -> Optional[str]:
+    def _infer_extension_from_content_type(
+        self, content_type: Optional[str]
+    ) -> Optional[str]:
         """
         Map MIME type to file extension; default to svg/png only.
         """
@@ -454,7 +490,27 @@ class NapkinAPIClient:
             return "png"
         return None
 
-    def _infer_filename_from_content_disposition(self, cd: Optional[str]) -> Optional[str]:
+    def _dedupe_path(self, path: Path) -> Path:
+        """
+        Generate a unique path by adding numeric suffix if file exists.
+        """
+        if not path.exists():
+            return path
+
+        stem = path.stem
+        suffix = path.suffix
+        parent = path.parent
+
+        counter = 1
+        while True:
+            new_path = parent / f"{stem}_{counter}{suffix}"
+            if not new_path.exists():
+                return new_path
+            counter += 1
+
+    def _infer_filename_from_content_disposition(
+        self, cd: Optional[str]
+    ) -> Optional[str]:
         """
         Parse Content-Disposition for filename* (RFC 5987) or filename.
         """
@@ -463,16 +519,31 @@ class NapkinAPIClient:
         try:
             # naive parse; sufficient for common cases
             parts = [p.strip() for p in cd.split(";")]
-            filename_star = next((p.split("=", 1)[1] for p in parts if p.lower().startswith("filename*=")), None)
+            filename_star = next(
+                (
+                    p.split("=", 1)[1]
+                    for p in parts
+                    if p.lower().startswith("filename*=")
+                ),
+                None,
+            )
             if filename_star:
                 # format: filename*=UTF-8''encoded-name
                 val = filename_star.strip()
                 if val.lower().startswith("utf-8''"):
                     import urllib.parse
+
                     return urllib.parse.unquote(val[7:])
                 # generic fallback without encoding marker
                 return val.strip('"').strip("'")
-            filename = next((p.split("=", 1)[1] for p in parts if p.lower().startswith("filename=")), None)
+            filename = next(
+                (
+                    p.split("=", 1)[1]
+                    for p in parts
+                    if p.lower().startswith("filename=")
+                ),
+                None,
+            )
             if filename:
                 return filename.strip('"').strip("'")
         except Exception:
@@ -481,6 +552,7 @@ class NapkinAPIClient:
 
     def _get_int_env(self, key: str, default: int) -> int:
         import os
+
         try:
             val = os.getenv(key)
             return int(val) if val is not None else default
@@ -489,11 +561,12 @@ class NapkinAPIClient:
 
     def _get_bool_env(self, key: str, default: bool) -> bool:
         import os
+
         val = os.getenv(key)
         if val is None:
             return default
         return val.strip().lower() in {"1", "true", "yes", "on"}
-    
+
     async def download_file_by_id(self, request_id: str, file_id: str) -> bytes:
         """
         Download a generated file by its file ID using the API's file endpoint.
@@ -526,33 +599,39 @@ class NapkinAPIClient:
     ) -> StatusResponse:
         """
         Poll status until request completes.
-        
+
         Args:
             request_id: The request ID to monitor.
             poll_interval: Seconds between polls (uses config default if None).
             max_attempts: Maximum polling attempts (uses config default if None).
-        
+
         Returns:
             Final StatusResponse when complete.
-        
+
         Raises:
             ProcessingError: If request fails or times out.
         """
         poll_interval = poll_interval or self.settings.poll_interval_seconds
         max_attempts = max_attempts or self.settings.max_poll_attempts
-        
+
         attempts = 0
         delay = poll_interval
-        
+
         while attempts < max_attempts:
             # Check status
             status = await self.get_status(request_id)
-            
+
             # Log detailed status
-            logger.debug(f"Polling attempt {attempts + 1}: status={status.status.value}, files_ready={status.files_ready}")
-            
+            logger.debug(
+                f"Polling attempt {attempts + 1}: status={status.status.value}, files_ready={status.files_ready}"
+            )
+
             # Check if terminal state
-            if status.status in {RequestStatus.COMPLETED, RequestStatus.FAILED, RequestStatus.EXPIRED}:
+            if status.status in {
+                RequestStatus.COMPLETED,
+                RequestStatus.FAILED,
+                RequestStatus.EXPIRED,
+            }:
                 if status.status == RequestStatus.FAILED:
                     raise ProcessingError(
                         f"Visual generation failed: {status.error or 'Unknown error'}"
@@ -560,22 +639,24 @@ class NapkinAPIClient:
                 elif status.status == RequestStatus.EXPIRED:
                     raise ProcessingError("Request expired")
                 return status
-            
+
             # Log progress
             if status.progress:
-                logger.info(f"Progress: {status.progress:.0f}% - {status.message or ''}")
-            
+                logger.info(
+                    f"Progress: {status.progress:.0f}% - {status.message or ''}"
+                )
+
             # Wait with exponential backoff
             await asyncio.sleep(delay)
             delay = min(delay * 1.2, 30)  # Cap at 30 seconds
             attempts += 1
-        
+
         raise ProcessingError(f"Timeout after {max_attempts} attempts")
-    
+
     def get_rate_limit_status(self) -> Optional[RateLimitInfo]:
         """
         Get current rate limit status.
-        
+
         Returns:
             RateLimitInfo if available, None otherwise.
         """

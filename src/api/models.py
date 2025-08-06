@@ -21,8 +21,6 @@ Model overview:
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Annotated, List, Optional, Dict, Any
-from uuid import UUID
-from decimal import Decimal
 
 from pydantic import (
     BaseModel,
@@ -41,8 +39,13 @@ from pydantic import (
 NonEmptyStr = Annotated[StrictStr, Field(min_length=1)]
 ShortText = Annotated[StrictStr, Field(min_length=1, max_length=5000)]
 LongText = Annotated[StrictStr, Field(min_length=1, max_length=10000)]
-LangCode = Annotated[StrictStr, Field(min_length=2, max_length=35, pattern=r"^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$")]
-IdStr = Annotated[StrictStr, Field(min_length=8, max_length=64, pattern=r"^[A-Za-z0-9_\-]+$")]
+LangCode = Annotated[
+    StrictStr,
+    Field(min_length=2, max_length=35, pattern=r"^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$"),
+]
+IdStr = Annotated[
+    StrictStr, Field(min_length=8, max_length=64, pattern=r"^[A-Za-z0-9_\-]+$")
+]
 PositiveSmallInt = Annotated[StrictInt, Field(ge=1, le=4)]
 PngDim = Annotated[StrictInt, Field(ge=100, le=4096)]
 PercentFloat = Annotated[StrictFloat, Field(ge=0, le=100)]
@@ -51,6 +54,7 @@ BytesCount = Annotated[StrictInt, Field(ge=0)]
 
 class RequestStatus(str, Enum):
     """Visual generation request status."""
+
     PENDING = "pending"
     PROCESSING = "processing"
     COMPLETED = "completed"
@@ -60,17 +64,19 @@ class RequestStatus(str, Enum):
 
 class OutputFormat(str, Enum):
     """Supported output formats."""
+
     SVG = "svg"
     PNG = "png"
 
 
 class VisualRequest(BaseModel):
     """Request model for creating a visual.
-    
+
     Notes:
     - PNG dimensions (width/height) are only allowed when format=png.
     - Lists, when provided, must not be empty and must contain non-empty identifiers.
     """
+
     # Required
     content: LongText = Field(
         ...,
@@ -262,7 +268,7 @@ class GeneratedFile(BaseModel):
                     "format": "svg",
                     "filename": "visual.svg",
                     "size_bytes": 245760,
-                    "created_at": "2025-01-01T12:00:00Z"
+                    "created_at": "2025-01-01T12:00:00Z",
                 }
             ]
         },
@@ -437,7 +443,11 @@ class ErrorResponse(BaseModel):
         description="Human-readable error message.",
         examples=["Invalid width for PNG format"],
     )
-    code: Optional[Annotated[StrictStr, Field(min_length=2, max_length=64, pattern=r"^[A-Z0-9_]+$")]] = Field(
+    code: Optional[
+        Annotated[
+            StrictStr, Field(min_length=2, max_length=64, pattern=r"^[A-Z0-9_]+$")
+        ]
+    ] = Field(
         default=None,
         description="Machine-readable error code (e.g., VALIDATION_ERROR).",
         examples=["VALIDATION_ERROR"],
@@ -508,6 +518,7 @@ class RateLimitInfo(BaseModel):
             ]
         },
     }
+
 
 # Usage examples (unit-test–friendly):
 # Validate VisualRequest

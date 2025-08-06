@@ -5,7 +5,7 @@ Provides formatted console output using Rich library for better user experience.
 """
 
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 
 from rich.console import Console
 from rich.panel import Panel
@@ -42,13 +42,13 @@ def display_warning(message: str):
 def display_visual_result(file_paths: List[Path]):
     """
     Display generated visual file paths.
-    
+
     Args:
         file_paths: List of generated file paths.
     """
     if not file_paths:
         return
-    
+
     # Create table for files
     table = Table(
         title="Generated Files",
@@ -59,7 +59,7 @@ def display_visual_result(file_paths: List[Path]):
     table.add_column("Filename", style="green")
     table.add_column("Path", style="white")
     table.add_column("Size", style="yellow")
-    
+
     for i, path in enumerate(file_paths, 1):
         # Get file size
         if path.exists():
@@ -72,14 +72,14 @@ def display_visual_result(file_paths: List[Path]):
                 size_str = f"{size / (1024 * 1024):.1f} MB"
         else:
             size_str = "N/A"
-        
+
         table.add_row(
             str(i),
             path.name,
             str(path.parent),
             size_str,
         )
-    
+
     console.print("\n")
     console.print(table)
     console.print()
@@ -88,7 +88,7 @@ def display_visual_result(file_paths: List[Path]):
 def create_progress() -> Progress:
     """
     Create a progress spinner for long-running operations.
-    
+
     Returns:
         Progress instance with spinner.
     """
@@ -103,17 +103,17 @@ def create_progress() -> Progress:
 def display_api_response(data: dict, title: str = "API Response"):
     """
     Display API response data in formatted JSON.
-    
+
     Args:
         data: Response data dictionary.
         title: Panel title.
     """
     import json
-    
+
     # Format JSON with syntax highlighting
     json_str = json.dumps(data, indent=2, default=str)
     syntax = Syntax(json_str, "json", theme="monokai", line_numbers=False)
-    
+
     # Display in panel
     panel = Panel(syntax, title=title, border_style="cyan")
     console.print(panel)
@@ -122,7 +122,7 @@ def display_api_response(data: dict, title: str = "API Response"):
 def display_style_preview(style_name: str, style_id: str, description: str):
     """
     Display a preview of a visual style.
-    
+
     Args:
         style_name: Name of the style.
         style_id: Style ID.
@@ -134,7 +134,7 @@ def display_style_preview(style_name: str, style_id: str, description: str):
 
 {description}
     """
-    
+
     panel = Panel(
         content.strip(),
         title="Style Preview",
@@ -153,7 +153,7 @@ def display_generation_summary(
 ):
     """
     Display a summary of generation parameters.
-    
+
     Args:
         content: Text content (truncated for display).
         style: Style name.
@@ -166,7 +166,7 @@ def display_generation_summary(
         display_content = content[:97] + "..."
     else:
         display_content = content
-    
+
     # Create summary table
     table = Table(
         title="Generation Parameters",
@@ -175,13 +175,13 @@ def display_generation_summary(
     )
     table.add_column("Parameter", style="cyan")
     table.add_column("Value", style="white")
-    
+
     # Add parameters
     table.add_row("Content", display_content)
     table.add_row("Style", style)
     table.add_row("Format", format.upper())
     table.add_row("Variations", str(variations))
-    
+
     # Add optional parameters
     if kwargs.get("language"):
         table.add_row("Language", kwargs["language"])
@@ -193,7 +193,7 @@ def display_generation_summary(
         table.add_row("Transparent", "Yes")
     if kwargs.get("inverted"):
         table.add_row("Inverted", "Yes")
-    
+
     console.print(table)
     console.print()
 
@@ -201,7 +201,7 @@ def display_generation_summary(
 def display_batch_progress(current: int, total: int, successful: int, failed: int):
     """
     Display batch generation progress.
-    
+
     Args:
         current: Current item number.
         total: Total items.
@@ -214,14 +214,14 @@ def display_batch_progress(current: int, total: int, successful: int, failed: in
     progress.append(f"✓ {successful} ", style="green")
     if failed > 0:
         progress.append(f"✗ {failed}", style="red")
-    
+
     console.print(progress)
 
 
 def display_rate_limit_status(limit: int, remaining: int, reset_time: str):
     """
     Display current rate limit status.
-    
+
     Args:
         limit: Total request limit.
         remaining: Remaining requests.
@@ -229,7 +229,7 @@ def display_rate_limit_status(limit: int, remaining: int, reset_time: str):
     """
     # Calculate percentage
     percentage = (remaining / limit) * 100 if limit > 0 else 0
-    
+
     # Choose color based on remaining
     if percentage > 50:
         color = "green"
@@ -237,13 +237,13 @@ def display_rate_limit_status(limit: int, remaining: int, reset_time: str):
         color = "yellow"
     else:
         color = "red"
-    
+
     # Create status text
     status = Text()
     status.append("Rate Limit: ", style="dim")
     status.append(f"{remaining}/{limit}", style=f"bold {color}")
     status.append(f" (resets at {reset_time})", style="dim")
-    
+
     console.print(status)
 
 
@@ -255,7 +255,7 @@ def clear_screen():
 def print_divider(char: str = "─", style: str = "dim"):
     """
     Print a horizontal divider line.
-    
+
     Args:
         char: Character to use for divider.
         style: Rich style for the divider.

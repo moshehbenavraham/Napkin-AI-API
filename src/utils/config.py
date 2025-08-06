@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """
 Configuration management for Napkin AI API Playground.
 
@@ -11,13 +9,15 @@ Key goals:
 - Be thread-safe for concurrent access to the singleton
 """
 
-from pathlib import Path
+from __future__ import annotations
+
 import json
 import logging
 import os
-from typing import Optional, Dict
+from pathlib import Path
+from typing import Dict, Optional
 
-from pydantic import Field, field_validator, ValidationError
+from pydantic import Field, ValidationError, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger(__name__)
@@ -207,7 +207,9 @@ class Settings(BaseSettings):
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
         except OSError as e:
-            raise ValueError(f"Unable to create parent directory for {path!s}: {e}") from e
+            raise ValueError(
+                f"Unable to create parent directory for {path!s}: {e}"
+            ) from e
         return path
 
     @property
@@ -270,9 +272,11 @@ def _build_settings() -> Settings:
         )
 
     try:
-        s = Settings()
+        s = Settings()  # type: ignore[call-arg]
     except ValidationError as e:
-        logger.error("Failed to validate configuration: %s", json.dumps(e.errors(), default=str))
+        logger.error(
+            "Failed to validate configuration: %s", json.dumps(e.errors(), default=str)
+        )
         raise
     else:
         if logger.isEnabledFor(logging.DEBUG):

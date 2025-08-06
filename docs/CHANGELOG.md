@@ -3,6 +3,26 @@
 All notable changes to this project are documented in this file.
 The format follows Keep a Changelog, and the project aims to follow Semantic Versioning.
 
+## [0.1.3] - 2025-01-07
+
+### Fixed
+- Fixed failing tests by properly disabling .env file loading in test_required_api_token
+- Fixed test assertion to match actual Pydantic validation error message format
+- Fixed deprecation warnings by replacing datetime.utcnow() with datetime.now(timezone.utc)
+- Fixed code formatting issues detected by ruff
+- Fixed import order issues (E402: module level imports not at top of file)
+- Fixed mypy type errors:
+  - Added missing _dedupe_path method in NapkinAPIClient
+  - Fixed format parameter type conversion to OutputFormat enum
+  - Fixed variable name conflict causing type confusion
+  - Added type annotation for console_handler
+  - Fixed RateLimitInfo reset parameter to handle None values
+- Removed unused imports across multiple modules
+
+### Changed
+- Updated README.md installation instructions to clarify Poetry usage and napkin CLI command
+- Improved type safety throughout the codebase
+
 ## [0.1.2] - 2025-01-06
 
 ### Added

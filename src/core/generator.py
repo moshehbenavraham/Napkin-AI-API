@@ -12,9 +12,9 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 
 from ..api.client import NapkinAPIClient, ProcessingError
-from ..api.models import VisualRequest, VisualResponse, StatusResponse, GeneratedFile
+from ..api.models import VisualRequest, StatusResponse, OutputFormat
 from ..utils.config import Settings, get_settings
-from ..utils.constants import STYLES, get_style_by_name
+from ..utils.constants import get_style_by_name
 
 
 logger = logging.getLogger(__name__)
@@ -22,28 +22,28 @@ logger = logging.getLogger(__name__)
 
 class VisualGenerator:
     """High-level interface for visual generation."""
-    
+
     def __init__(self, settings: Optional[Settings] = None):
         """
         Initialize visual generator.
-        
+
         Args:
             settings: Configuration settings. If None, loads from environment.
         """
         self.settings = settings or get_settings()
         self.client: Optional[NapkinAPIClient] = None
-    
+
     async def __aenter__(self):
         """Async context manager entry."""
         self.client = NapkinAPIClient(self.settings)
         await self.client.__aenter__()
         return self
-    
+
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Async context manager exit."""
         if self.client:
             await self.client.__aexit__(exc_type, exc_val, exc_tb)
-    
+
     def _prepare_request(
         self,
         content: str,
@@ -60,7 +60,7 @@ class VisualGenerator:
     ) -> VisualRequest:
         """
         Prepare visual request with defaults.
-        
+
         Args:
             content: Text content to visualize.
             style: Style name or ID.
@@ -73,15 +73,21 @@ class VisualGenerator:
             inverted: Invert colors.
             width: Width in pixels (PNG only).
             height: Height in pixels (PNG only).
-        
+
         Returns:
             Prepared VisualRequest.
         """
         # Apply defaults
-        format = format or self.settings.default_format
+        format_str = format or self.settings.default_format
         language = language or self.settings.default_language
         variations = variations or self.settings.default_variations
-        
+
+        # Convert string format to OutputFormat enum
+        try:
+            format_enum = OutputFormat(format_str.lower())
+        except ValueError:
+            format_enum = OutputFormat.SVG  # Default to SVG if invalid
+
         # Handle style - could be name or ID
         style_id = None
         if style:
@@ -99,11 +105,11 @@ class VisualGenerator:
                 style_id = style_obj.id
             except ValueError:
                 style_id = self.settings.default_style
-        
+
         # Create request
         return VisualRequest(
             content=content,
-            format=format,
+            format=format_enum,
             style_id=style_id,
             language=language,
             number_of_visuals=variations,
@@ -114,7 +120,7 @@ class VisualGenerator:
             width=width,
             height=height,
         )
-    
+
     def _generate_filename(
         self,
         request_id: str,
@@ -124,13 +130,13 @@ class VisualGenerator:
     ) -> str:
         """
         Generate filename for saved visual.
-        
+
         Args:
             request_id: Request ID.
             file_id: File ID.
             format: File format.
             index: File index for multiple variations.
-        
+
         Returns:
             Generated filename.
         """
@@ -139,7 +145,7 @@ class VisualGenerator:
         if index > 0:
             return f"napkin_{timestamp}_{request_id[:8]}_v{index + 1}.{format}"
         return f"napkin_{timestamp}_{request_id[:8]}.{format}"
-    
+
     async def generate(
         self,
         content: str,
@@ -158,7 +164,7 @@ class VisualGenerator:
     ) -> Tuple[StatusResponse, List[Path]]:
         """
         Generate visuals from text content.
-        
+
         Args:
             content: Text content to visualize.
             output_dir: Directory to save files (uses config default if None).
@@ -173,16 +179,16 @@ class VisualGenerator:
             width: Width in pixels (PNG only).
             height: Height in pixels (PNG only).
             save_files: Whether to save files to disk.
-        
+
         Returns:
             Tuple of (final status, list of saved file paths).
-        
+
         Raises:
             ProcessingError: If generation fails.
         """
         if not self.client:
             raise RuntimeError("Generator must be used as async context manager")
-        
+
         # Prepare request
         request = self._prepare_request(
             content=content,
@@ -197,24 +203,28 @@ class VisualGenerator:
             width=width,
             height=height,
         )
-        
+
         # Log generation start
-        logger.info(f"Generating {request.number_of_visuals} visual(s) in {request.format} format")
-        
+        logger.info(
+            f"Generating {request.number_of_visuals} visual(s) in {request.format} format"
+        )
+
         # Create visual request
         response = await self.client.create_visual(request)
         request_id = response.request_id
-        
+
         logger.info(f"Request created: {request_id}")
-        
+
         # Wait for completion
         final_status = await self.client.wait_for_completion(request_id)
-        
+
         if final_status.status.value != "completed":
-            raise ProcessingError(f"Generation failed: {final_status.error or 'Unknown error'}")
-        
+            raise ProcessingError(
+                f"Generation failed: {final_status.error or 'Unknown error'}"
+            )
+
         logger.info(f"Generation completed: {final_status.files_ready} file(s) ready")
-        
+
         # Download files if requested
         saved_paths = []
         if save_files and final_status.files_ready > 0:
@@ -252,8 +262,10 @@ class VisualGenerator:
                     try:
                         if file_url:
                             # Use client direct URL downloader for consistent headers/handling
-                            content = await self.client.download_file_by_url(file_url)
-                            file_path.write_bytes(content)
+                            file_content = await self.client.download_file_by_url(
+                                file_url
+                            )
+                            file_path.write_bytes(file_content)
                             saved_paths.append(file_path)
                             logger.info("Saved: %s", file_path)
                         else:
@@ -285,9 +297,9 @@ class VisualGenerator:
                         logger.info("Saved: %s", file_path)
                     except Exception as e:
                         logger.error("Failed to download file %s: %s", file_id, e)
-        
+
         return final_status, saved_paths
-    
+
     async def generate_batch(
         self,
         contents: List[str],
@@ -299,7 +311,7 @@ class VisualGenerator:
     ) -> List[Tuple[str, StatusResponse, List[Path]]]:
         """
         Generate visuals for multiple contents in batch.
-        
+
         Args:
             contents: List of text contents.
             output_dir: Directory to save files.
@@ -307,15 +319,15 @@ class VisualGenerator:
             format: Output format.
             concurrent_limit: Max concurrent requests.
             **kwargs: Additional generation parameters.
-        
+
         Returns:
             List of tuples (content, status, file_paths) for each generation.
         """
         concurrent_limit = concurrent_limit or self.settings.batch_concurrent_limit
-        
+
         # Create semaphore for rate limiting
         semaphore = asyncio.Semaphore(concurrent_limit)
-        
+
         async def generate_one(content: str, index: int):
             """Generate visual for one content item."""
             async with semaphore:
@@ -324,7 +336,7 @@ class VisualGenerator:
                     item_dir = None
                     if output_dir:
                         item_dir = output_dir / f"batch_{index + 1:03d}"
-                    
+
                     status, paths = await self.generate(
                         content=content,
                         output_dir=item_dir,
@@ -336,19 +348,18 @@ class VisualGenerator:
                 except Exception as e:
                     logger.error(f"Failed to generate visual for item {index + 1}: {e}")
                     return content, None, []
-        
+
         # Generate all visuals concurrently
-        tasks = [
-            generate_one(content, i)
-            for i, content in enumerate(contents)
-        ]
-        
+        tasks = [generate_one(content, i) for i, content in enumerate(contents)]
+
         results = await asyncio.gather(*tasks)
-        
+
         # Log summary
         successful = sum(1 for _, status, _ in results if status)
-        logger.info(f"Batch generation completed: {successful}/{len(contents)} successful")
-        
+        logger.info(
+            f"Batch generation completed: {successful}/{len(contents)} successful"
+        )
+
         return results
 
 
@@ -361,14 +372,14 @@ async def generate_visual(
 ) -> Tuple[StatusResponse, List[Path]]:
     """
     Convenience function to generate a visual.
-    
+
     Args:
         content: Text content to visualize.
         output_dir: Directory to save files.
         style: Style name or ID.
         format: Output format.
         **kwargs: Additional generation parameters.
-    
+
     Returns:
         Tuple of (status, file_paths).
     """

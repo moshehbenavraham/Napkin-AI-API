@@ -1,4 +1,5 @@
 # Napkin AI API Playground Documentation
+- See [.github Directory Documentation](GITHUB_FOLDER.md) for CODEOWNERS, Dependabot, PR/Issue templates, and workflows maintenance.
 
 Executive Overview
 Napkin AI API Playground provides a production-ready Python CLI and async client for generating SVG/PNG visuals from text using the Napkin API. This documentation hub centralizes setup, usage, API reference, and security.

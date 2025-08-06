@@ -13,11 +13,15 @@ Key Capabilities
 
 Installation
 ```bash
-# Local development
+# Using Poetry (recommended)
 poetry install
 
-# Or with pip
-pip install -r requirements.txt
+# This installs the 'napkin' CLI command
+# After installation, you can use:
+napkin --help
+
+# Alternative: run directly with Python
+python main.py --help
 ```
 
 Configuration
@@ -107,3 +111,4 @@ Further Reading
 - docs/USAGE.md
 - docs/API_REFERENCE.md
 - docs/README.md (docs hub)
+<!-- Link to .github documentation -->

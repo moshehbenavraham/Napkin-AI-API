@@ -6,7 +6,6 @@ Provides command-line interface for generating visuals using the Napkin API.
 
 import asyncio
 import logging
-import sys
 from pathlib import Path
 from typing import Optional
 
@@ -15,8 +14,8 @@ from rich.console import Console
 from rich.logging import RichHandler
 
 from ..core.generator import generate_visual
-from ..utils.config import get_settings, Settings
-from ..utils.constants import STYLES, list_style_names, OutputFormat
+from ..utils.config import get_settings
+from ..utils.constants import STYLES
 from ..api.client import NapkinAPIError, AuthenticationError, RateLimitError
 from .display import (
     display_error,
@@ -136,7 +135,7 @@ def generate(
 ):
     """
     Generate visual from text content.
-    
+
     Examples:
         napkin generate "Machine Learning Pipeline"
         napkin generate "Data Flow" --style sketch-notes --format png
@@ -144,33 +143,33 @@ def generate(
     """
     # Setup logging
     setup_logging("DEBUG" if debug else "INFO")
-    
+
     try:
         # Load settings
         settings = get_settings()
-        
+
         # Validate format if specified
         if format and format.lower() not in ["svg", "png"]:
             display_error(f"Invalid format: {format}. Must be 'svg' or 'png'")
             raise typer.Exit(1)
-        
+
         # Show generation info
         style_name = style or settings.default_style
         output_format = format or settings.default_format
         num_variations = variations or settings.default_variations
-        
+
         display_info(
             f"Generating {num_variations} visual(s) in {output_format} format "
             f"with style '{style_name}'"
         )
-        
+
         # Create progress spinner
         with create_progress() as progress:
             task = progress.add_task(
                 "[cyan]Creating visual...",
                 total=None,
             )
-            
+
             # Run async generation
             status, file_paths = asyncio.run(
                 generate_visual(
@@ -188,9 +187,9 @@ def generate(
                     height=height,
                 )
             )
-            
+
             progress.update(task, completed=True)
-        
+
         # Display results
         if file_paths:
             display_visual_result(file_paths)
@@ -198,7 +197,7 @@ def generate(
         else:
             display_error("No files were generated")
             raise typer.Exit(1)
-            
+
     except AuthenticationError as e:
         display_error(f"Authentication failed: {e}")
         display_info("Please check your NAPKIN_API_TOKEN environment variable")
@@ -236,14 +235,14 @@ def styles(
 ):
     """
     List and explore available visual styles.
-    
+
     Examples:
         napkin styles --list
         napkin styles --category colorful
     """
     from ..utils.constants import StyleCategory, get_styles_by_category
     from rich.table import Table
-    
+
     # Create table for displaying styles
     table = Table(
         title="Available Visual Styles",
@@ -253,7 +252,7 @@ def styles(
     table.add_column("Style Name", style="green")
     table.add_column("Category", style="yellow")
     table.add_column("Description", style="white")
-    
+
     # Filter styles if category specified
     if category:
         try:
@@ -267,7 +266,7 @@ def styles(
             raise typer.Exit(1)
     else:
         styles_to_show = list(STYLES.values())
-    
+
     # Add styles to table
     for style in styles_to_show:
         table.add_row(
@@ -275,7 +274,7 @@ def styles(
             style.category.value,
             style.description,
         )
-    
+
     # Display table
     console.print(table)
     console.print(f"\n[dim]Total styles: {len(styles_to_show)}[/dim]")
@@ -298,27 +297,27 @@ def config(
 ):
     """
     Manage configuration settings.
-    
+
     Examples:
         napkin config --show
         napkin config --check
     """
     from rich.table import Table
-    
+
     try:
         settings = get_settings()
-        
+
         if check:
             # Check configuration
             display_success("Configuration is valid")
-            
+
             # Check API token
             if not settings.api_token:
                 display_error("NAPKIN_API_TOKEN is not set")
                 raise typer.Exit(1)
             else:
                 display_info("API token is configured")
-        
+
         if show or not check:
             # Show configuration
             table = Table(
@@ -328,7 +327,7 @@ def config(
             )
             table.add_column("Setting", style="yellow")
             table.add_column("Value", style="white")
-            
+
             # Add non-sensitive settings
             config_items = [
                 ("API Base URL", settings.api_base_url),
@@ -340,12 +339,12 @@ def config(
                 ("Log Level", settings.log_level),
                 ("API Token", "****" if settings.api_token else "[red]NOT SET[/red]"),
             ]
-            
+
             for key, value in config_items:
                 table.add_row(key, value)
-            
+
             console.print(table)
-            
+
     except Exception as e:
         display_error(f"Configuration error: {e}")
         display_info("Please check your .env file or environment variables")
@@ -356,16 +355,16 @@ def config(
 def version():
     """Show version information."""
     from rich.panel import Panel
-    
+
     version_info = """
 [bold cyan]Napkin AI API Playground[/bold cyan]
-Version: 0.1.0
+Version: 0.1.3
 Python Client for Napkin AI Visual Generation API
     
 [dim]API Version: v1
 Documentation: https://github.com/yourusername/napkin-api-playground[/dim]
     """
-    
+
     console.print(Panel(version_info.strip(), title="About", border_style="cyan"))
 
 

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """
 Constants and style definitions for Napkin AI API.
 
@@ -14,18 +12,22 @@ Design goals:
 - Helper functions with clear errors and predictable behavior
 """
 
+from __future__ import annotations
+
 from enum import Enum
-from typing import Dict, List, Mapping, NamedTuple, Sequence
+from typing import List, Mapping, NamedTuple
 
 
 class OutputFormat(str, Enum):
     """Supported output formats for visuals."""
+
     SVG = "svg"
     PNG = "png"
 
 
 class StyleCategory(str, Enum):
     """Visual style categories."""
+
     COLORFUL = "colorful"
     CASUAL = "casual"
     HAND_DRAWN = "hand_drawn"
@@ -36,6 +38,7 @@ class StyleCategory(str, Enum):
 
 class Style(NamedTuple):
     """Visual style definition."""
+
     id: str
     name: str
     description: str
@@ -76,7 +79,6 @@ STYLES: Mapping[str, Style] = {
         description="A palette of blended hues for bold ideas",
         category=StyleCategory.COLORFUL,
     ),
-
     # Casual Styles
     "carefree-mist": Style(
         id="CDGQ6XB1DGPQ6VV6EG",
@@ -90,7 +92,6 @@ STYLES: Mapping[str, Style] = {
         description="A breeze of soft color for bright ideas",
         category=StyleCategory.CASUAL,
     ),
-
     # Hand-drawn Styles
     "artistic-flair": Style(
         id="D1GPWS1DCDQPRVVJCSTPR",
@@ -104,7 +105,6 @@ STYLES: Mapping[str, Style] = {
         description="A hand-drawn style for free-flowing ideas",
         category=StyleCategory.HAND_DRAWN,
     ),
-
     # Formal Styles
     "elegant-outline": Style(
         id="CSQQ4VB1DGPP4V31CDNJTVKFBXK6JV3C",
@@ -130,7 +130,6 @@ STYLES: Mapping[str, Style] = {
         description="A professional flat style for business diagrams",
         category=StyleCategory.FORMAL,
     ),
-
     # Monochrome Styles
     "minimal-contrast": Style(
         id="DNQPWVV3D1S6YVB55NK6RRBM",
