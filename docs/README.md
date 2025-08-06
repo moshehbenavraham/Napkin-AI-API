@@ -1,21 +1,26 @@
 # Napkin AI API Playground Documentation
 
-Overview
-A cohesive documentation hub for the Napkin AI API Playground. This consolidates project navigation and aligns with the current CLI-only scope. Any web UI, batch engine, or gallery features referenced elsewhere are roadmap items and explicitly marked as future work to avoid confusion.
+Executive Overview
+Napkin AI API Playground provides a production-ready Python CLI and async client for generating SVG/PNG visuals from text using the Napkin API. This documentation hub centralizes setup, usage, API reference, and security.
 
 Quick Navigation
-- README (root): Project overview, quick start, features
-- SETUP: Installation and configuration
-- USAGE: CLI commands and examples
-- API_REFERENCE: Python client and high-level generator API
-- SECURITY: Security policy and reporting
-- CONTRIBUTING: Contributing guidelines
-- CHANGELOG: Notable changes
+- Project Overview: ../README.md
+- Setup & Installation: SETUP.md
+- Usage (CLI): USAGE.md
+- API Reference (Python): API_REFERENCE.md
+- Security: SECURITY.md
+- Contributing: CONTRIBUTING.md
+- Changelog: CHANGELOG.md
 
-Scope Clarification
-Current scope is a Python CLI and client library:
-- Implemented: CLI commands (generate, styles, config, version), async API client with retries, configuration via environment/.env, style constants, and basic single visual generation.
-- Not implemented yet (roadmap): Interactive TUI, batch CSV engine, local gallery/SQLite, Streamlit web UI, analytics dashboards, similarity search. These are retained in PRD as future phases.
+System Architecture Overview
+Components and responsibilities:
+- CLI (src/cli/): Typer-based commands, Rich output, progress UX
+- Core (src/core/): Orchestrates request, polling, downloads
+- API Client (src/api/client.py): httpx + tenacity, auth, retries, rate limit parsing
+- Models (src/api/models.py): Pydantic v2 models for requests/status/files/errors
+- Config & Constants (src/utils/): Environment-backed settings and style catalog
+High-level data flow:
+1) CLI parses user input -> 2) Core builds VisualRequest -> 3) Client POST /visual -> 4) Client polls GET /visual/:id/status -> 5) Client downloads files by URL or file id -> 6) Files saved to storage_path
 
 Prerequisites
 - Python 3.9+
