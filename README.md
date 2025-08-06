@@ -1,114 +1,339 @@
-# Napkin AI API Playground
+# 🎨 Napkin AI API Playground
 
-Executive Overview
-Napkin AI API Playground is a Python CLI and client library that turns text into professional visuals via the Napkin API. It provides a robust async client, a friendly CLI, strong validation, and production-ready defaults to generate SVG/PNG artifacts quickly and reliably.
+<div align="center">
 
-Key Capabilities
-- Single Visual Generation via CLI
-- 15+ Curated Styles with IDs and categories
-- SVG/PNG Outputs with optional PNG dimensions
-- Async Client with retries and rate-limit awareness
-- Clear Errors and progress messaging
-- Environment-based Configuration with .env support
+![Python](https://img.shields.io/badge/python-3.9%2B-blue?style=for-the-badge&logo=python&logoColor=white)
+![Poetry](https://img.shields.io/badge/Poetry-2.0%2B-60A5FA?style=for-the-badge&logo=poetry&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-0.1.3-purple?style=for-the-badge)
+![Status](https://img.shields.io/badge/status-MVP%20Complete-success?style=for-the-badge)
 
-Installation
+**Transform text into stunning visuals with the power of AI** ✨
+
+[Features](#-features) • [Quick Start](#-quick-start) • [Installation](#-installation) • [Documentation](#-documentation) • [Contributing](#-contributing)
+
+</div>
+
+---
+
+## 🚀 What is Napkin AI API Playground?
+
+A powerful Python CLI and async client library that seamlessly transforms your text into professional-grade visuals using the Napkin AI API. Built with modern Python practices, it features robust error handling, intelligent retries, and a delightful developer experience.
+
+### 🎯 Perfect for:
+- 📊 **Data Scientists** - Visualize complex concepts instantly
+- 👩‍💻 **Developers** - Generate architecture diagrams from descriptions
+- 📚 **Educators** - Create engaging visual content for teaching
+- 💼 **Product Managers** - Quickly sketch out ideas and workflows
+
+## ✨ Features
+
+<table>
+<tr>
+<td>
+
+### 🎨 15+ Visual Styles
+Choose from vibrant, sketch, corporate, minimalist, and more
+
+### 📐 Flexible Output
+Generate SVG for scalability or PNG with custom dimensions
+
+### ⚡ Async Performance
+Built on httpx with intelligent retry logic and rate limiting
+
+</td>
+<td>
+
+### 🛡️ Type-Safe
+Full Pydantic v2 validation and mypy type checking
+
+### 🎯 Smart Defaults
+Production-ready configuration out of the box
+
+### 📊 Rich Terminal UI
+Beautiful progress bars and formatted output with Rich
+
+</td>
+</tr>
+</table>
+
+## 🚦 Quick Start
+
+### 1️⃣ Install
 ```bash
-# Using Poetry (recommended)
+# Clone the repository
+git clone https://github.com/yourusername/napkin-api-playground.git
+cd napkin-api-playground
+
+# Install with Poetry
 poetry install
-
-# This installs the 'napkin' CLI command
-# After installation, you can use:
-napkin --help
-
-# Alternative: run directly with Python
-python main.py --help
 ```
 
-Configuration
-Request a token at api@napkin.ai. Then:
+### 2️⃣ Configure
 ```bash
+# Copy example config
 cp .env.example .env
-# edit .env
-#   NAPKIN_API_TOKEN=your_token_here
-```
-Windows (CMD):
-```bat
-set NAPKIN_API_TOKEN=your_token_here
-```
-Windows (PowerShell):
-```powershell
-$env:NAPKIN_API_TOKEN="your_token_here"
+
+# Add your API token (get one at api@napkin.ai)
+# Edit .env and set: NAPKIN_API_TOKEN=your_token_here
 ```
 
-Quick Start
+### 3️⃣ Generate!
 ```bash
-# Generate a visual
-napkin generate "Machine Learning Pipeline"
+# Your first visual
+poetry run napkin generate "Machine Learning Pipeline"
 
-# With options
-napkin generate "Data Flow Diagram" --style sketch-notes --format png --width 1920 --height 1080
+# Activate environment for easier usage
+source .venv/bin/activate
+napkin generate "Software Architecture"
+```
+
+## 🎮 CLI Commands
+
+### 🖼️ Generate Visuals
+```bash
+# Simple generation
+napkin generate "Your amazing idea"
+
+# With style and format
+napkin generate "Data Flow" --style sketch-notes --format png
 
 # Multiple variations
-napkin generate "Workflow Process" --variations 3
+napkin generate "System Design" --variations 4
 
-# Output directory
-napkin generate "System Design" --output ./data/visuals
+# Custom dimensions (PNG only)
+napkin generate "Architecture" --format png --width 1920 --height 1080
+
+# With context
+napkin generate "Neural Network" \
+  --context-before "Introduction to" \
+  --context-after "for beginners"
 ```
 
-CLI Commands
+### 🎨 Browse Styles
 ```bash
-napkin generate "Your content" [OPTIONS]
+# List all available styles
 napkin styles --list
+
+# Filter by category
 napkin styles --category colorful
-napkin config --show
+```
+
+### ⚙️ Configuration
+```bash
+# Check your setup
 napkin config --check
+
+# Show current configuration
+napkin config --show
+
+# View version info
 napkin version
 ```
 
-Generate Options
-- --style, -s: Visual style name or ID
-- --format, -f: svg or png
-- --output, -o: Output directory
-- --variations, -n: 1-4
-- --language, -l: BCP 47 code (e.g., en-US)
-- --context-before / --context-after
-- --width, -w / --height, -h (PNG only)
-- --transparent / --inverted
-- --debug
+## 📚 Available Styles
 
-Architecture Overview
-- CLI (Typer + Rich): Commands, UX, progress bars
-- API Client (httpx + tenacity): Auth, requests, retries, rate-limit parsing
-- Models (Pydantic v2): Request/response validation
-- Core (Generator): Orchestrates request, polling, downloads
-- Constants/Config: Style catalog, endpoints, environment-backed settings
+<details>
+<summary><b>Click to see all 15+ styles</b></summary>
 
-Project Structure
-```
-Napkin-AI-API/
-├── src/
-│   ├── api/          # API client and models
-│   ├── cli/          # CLI commands and display
-│   ├── core/         # Core generation logic
-│   ├── storage/      # Reserved for future persistence
-│   └── utils/        # Config and helpers
-├── tests/            # Test suite
-├── docs/             # Documentation
-├── data/             # Generated visuals
-└── main.py
+| Style | Category | Description |
+|-------|----------|-------------|
+| `vibrant-strokes` | Colorful | Bold, energetic brush strokes |
+| `sketch-notes` | Hand-drawn | Informal sketchnote style |
+| `corporate-clean` | Formal | Professional business graphics |
+| `elegant-outline` | Minimalist | Clean line art |
+| `comic-strip` | Casual | Fun comic book style |
+| ... and many more! | | |
+
+</details>
+
+## 🏗️ Architecture
+
+```mermaid
+graph TD
+    A[CLI Layer] -->|Typer + Rich| B[Core Generator]
+    B --> C[API Client]
+    C -->|httpx + tenacity| D[Napkin API]
+    B --> E[Pydantic Models]
+    E --> F[Type Validation]
+    
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style D fill:#bbf,stroke:#333,stroke-width:2px
 ```
 
-Security
-- Tokens masked and never logged
-- .env is gitignored
-- Validations guard against misuse
+<details>
+<summary><b>Project Structure</b></summary>
 
-License
-MIT (or your chosen license). See docs/SECURITY.md for security practices.
+```
+napkin-api-playground/
+├── 📁 src/
+│   ├── 🔌 api/          # Async API client & models
+│   ├── 💻 cli/          # CLI commands & display
+│   ├── ⚙️ core/         # Generation orchestration
+│   ├── 💾 storage/      # (Future) Persistence layer
+│   └── 🔧 utils/        # Config & helpers
+├── 🧪 tests/            # Comprehensive test suite
+├── 📚 docs/             # Documentation
+├── 🎨 data/             # Generated visuals
+└── 🚀 main.py           # Entry point
+```
 
-Further Reading
-- docs/SETUP.md
-- docs/USAGE.md
-- docs/API_REFERENCE.md
-- docs/README.md (docs hub)
-<!-- Link to .github documentation -->
+</details>
+
+## 🛠️ Installation Options
+
+### Poetry (Recommended)
+```bash
+poetry install
+
+# Run with poetry
+poetry run napkin --help
+
+# Or activate the environment
+source .venv/bin/activate
+napkin --help
+```
+
+### Alternative Methods
+<details>
+<summary><b>See other installation options</b></summary>
+
+**Direct Python:**
+```bash
+python main.py --help
+```
+
+**Create an alias:**
+```bash
+echo 'alias napkin="poetry run napkin"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+**Install from requirements.txt:**
+```bash
+pip install -r requirements.txt
+python main.py --help
+```
+
+</details>
+
+## 🔧 Configuration
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `NAPKIN_API_TOKEN` | **Required** - Your API token | - |
+| `NAPKIN_DEFAULT_STYLE` | Default visual style | `vibrant-strokes` |
+| `NAPKIN_DEFAULT_FORMAT` | Output format (svg/png) | `svg` |
+| `NAPKIN_STORAGE_PATH` | Where to save visuals | `./data/visuals` |
+| `NAPKIN_LOG_LEVEL` | Logging verbosity | `INFO` |
+
+<details>
+<summary><b>See all configuration options</b></summary>
+
+```bash
+NAPKIN_API_BASE_URL=https://api.napkin.ai
+NAPKIN_API_VERSION=v1
+NAPKIN_DEFAULT_LANGUAGE=en-US
+NAPKIN_DEFAULT_VARIATIONS=1
+NAPKIN_TIMEOUT_SECONDS=30
+NAPKIN_MAX_RETRIES=3
+NAPKIN_POLL_INTERVAL_SECONDS=2.0
+NAPKIN_MAX_POLL_ATTEMPTS=30
+NAPKIN_RATE_LIMIT_REQUESTS=60
+```
+
+</details>
+
+## 📖 Documentation
+
+| Document | Description |
+|----------|-------------|
+| 📘 [SETUP.md](docs/SETUP.md) | Detailed installation guide |
+| 📗 [USAGE.md](docs/USAGE.md) | Complete usage examples |
+| 📙 [API_REFERENCE.md](docs/API_REFERENCE.md) | Python API documentation |
+| 📕 [CHANGELOG.md](docs/CHANGELOG.md) | Version history |
+| 🔐 [SECURITY.md](docs/SECURITY.md) | Security guidelines |
+
+## 🧪 Development
+
+```bash
+# Run tests
+poetry run pytest
+
+# Type checking
+poetry run mypy src/
+
+# Linting
+poetry run ruff check src/
+
+# Format code
+poetry run ruff format src/
+```
+
+## 🤝 Contributing
+
+We love contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📊 Status & Roadmap
+
+### ✅ Phase 1: MVP (Complete)
+- [x] Core API integration
+- [x] CLI with all parameters
+- [x] 15+ styles support
+- [x] Async operations
+- [x] Comprehensive testing
+
+### 🚧 Phase 2: Enhanced Features (Coming Soon)
+- [ ] Interactive style browser
+- [ ] Batch processing
+- [ ] Local gallery
+- [ ] Web UI
+
+### 🔮 Future
+- [ ] Custom style creation
+- [ ] Team collaboration
+- [ ] Cloud storage integration
+
+## 🔒 Security
+
+- 🔐 API tokens are never logged or exposed
+- 🛡️ `.env` files are gitignored by default
+- ✅ Input validation on all parameters
+- 🔄 Secure HTTPS communication only
+
+See [SECURITY.md](docs/SECURITY.md) for full security practices.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+
+## 🙏 Acknowledgments
+
+- Built with ❤️ using [Poetry](https://python-poetry.org/)
+- Powered by [Napkin AI](https://napkin.ai) API
+- UI enhanced with [Rich](https://github.com/Textualize/rich)
+- CLI built on [Typer](https://typer.tiangolo.com/)
+
+## 📞 Support
+
+- 📧 Email: api@napkin.ai
+- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/napkin-api-playground/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/yourusername/napkin-api-playground/discussions)
+
+---
+
+<div align="center">
+
+**Made with 🎨 and Python**
+
+[⬆ Back to top](#-napkin-ai-api-playground)
+
+</div>
