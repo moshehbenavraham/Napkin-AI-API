@@ -1,0 +1,135 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+CLAUDE.md
+data/visuals/*
+!data/visuals/.gitkeep
+data/database/*
+!data/database/.gitkeep
+data/exports/
+*.log
+logs/*
+!logs/.gitkeep
+.env.local
+.env.production
+.env.*.local
+config/local.json
+config/production.json
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+.nox/
+.hypothesis/
+.pytype/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+
+# Poetry
+poetry.toml
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+*.ipynb
+!examples/*.ipynb
+
+# Documentation builds
+docs/_build/
+docs/_static/
+docs/_templates/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.cache
+tmp/
+temp/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+data/*.db
+
+# Secrets and credentials
+*.pem
+*.key
+*.cert
+*.crt
+credentials/
+secrets/
+
+# Output files
+output.txt
+*.out
+results/
+
+# MacOS
+.AppleDouble
+.LSOverride
+
+# Windows
+Desktop.ini
+ehthumbs.db
+ehthumbs_vista.db
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# Editor directories and files
+.sublime-*
+*.sublime-project
+*.sublime-workspace
+.kate-swp
+.vimrc
+.nvimrc
+*.code-workspace
