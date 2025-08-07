@@ -90,8 +90,8 @@ def run_generation_in_worker(
                 )
 
                 # Download the actual file content if we have API endpoints
+                downloaded_files = []
                 if hasattr(status_response, "files") and status_response.files:
-                    downloaded_files = []
                     for file_info in status_response.files:
                         if isinstance(file_info, dict):
                             # If we have an API endpoint URL, download it
@@ -138,11 +138,8 @@ def run_generation_in_worker(
                             # Not a dict, keep as is
                             downloaded_files.append(file_info)
 
-                    # Only set downloaded_files if we have any
-                    if downloaded_files:
-                        status_response.downloaded_files = downloaded_files
-
-                return status_response
+                # Return a tuple with status_response and downloaded_files
+                return (status_response, downloaded_files)
 
         loop = asyncio.new_event_loop()
         try:
@@ -324,17 +321,23 @@ if generate_button:
                     variations=variations,
                 )
 
-                # Defensive: result could be None or missing attributes
+                # Defensive: result could be None or a tuple
                 if result is None:
                     st.error("No response from generator. Please try again.")
                     st.stop()
 
                 # Check if we have downloaded files
                 files_to_display: List[Any] = []
-
-                if hasattr(result, "downloaded_files") and getattr(result, "downloaded_files"):
-                    # We have pre-downloaded content
-                    files_to_display = result.downloaded_files
+                
+                # Handle tuple response (status_response, downloaded_files)
+                if isinstance(result, tuple) and len(result) == 2:
+                    status_response, downloaded_files = result
+                    if downloaded_files:
+                        files_to_display = downloaded_files
+                    elif hasattr(status_response, "files") and getattr(status_response, "files"):
+                        files_to_display = status_response.files
+                    # Update result to be just the status_response for later usage
+                    result = status_response
                 elif hasattr(result, "files") and getattr(result, "files"):
                     # Fallback to URL-based files
                     files_to_display = result.files
