@@ -57,6 +57,10 @@ class VisualGenerator:
         inverted: bool = False,
         width: Optional[int] = None,
         height: Optional[int] = None,
+        visual_id: Optional[str] = None,
+        visual_query: Optional[str] = None,
+        transparent_background: Optional[bool] = None,
+        inverted_color: Optional[bool] = None,
     ) -> VisualRequest:
         """
         Prepare visual request with defaults.
@@ -115,10 +119,12 @@ class VisualGenerator:
             number_of_visuals=variations,
             context_before=context_before,
             context_after=context_after,
-            transparent_background=transparent,
-            inverted_color=inverted,
+            transparent_background=transparent_background if transparent_background is not None else transparent,
+            inverted_color=inverted_color if inverted_color is not None else inverted,
             width=width,
             height=height,
+            visual_id=visual_id,
+            visual_query=visual_query,
         )
 
     def _generate_filename(
@@ -161,6 +167,10 @@ class VisualGenerator:
         width: Optional[int] = None,
         height: Optional[int] = None,
         save_files: bool = True,
+        visual_id: Optional[str] = None,
+        visual_query: Optional[str] = None,
+        transparent_background: Optional[bool] = None,
+        inverted_color: Optional[bool] = None,
     ) -> Tuple[StatusResponse, List[Path]]:
         """
         Generate visuals from text content.
@@ -202,6 +212,10 @@ class VisualGenerator:
             inverted=inverted,
             width=width,
             height=height,
+            visual_id=visual_id,
+            visual_query=visual_query,
+            transparent_background=transparent_background,
+            inverted_color=inverted_color,
         )
 
         # Log generation start

@@ -68,6 +68,13 @@ def run_generation_in_worker(
     width: Optional[int],
     height: Optional[int],
     variations: int,
+    transparent_background: bool = False,
+    inverted_color: bool = False,
+    language: Optional[str] = None,
+    context_before: Optional[str] = None,
+    context_after: Optional[str] = None,
+    visual_id: Optional[str] = None,
+    visual_query: Optional[str] = None,
 ):
     """
     Execute the async VisualGenerator.generate in a dedicated thread with its own event loop
@@ -87,6 +94,13 @@ def run_generation_in_worker(
                     height=height,
                     variations=variations,
                     save_files=False,  # Don't save to disk, just get URLs
+                    transparent_background=transparent_background,
+                    inverted_color=inverted_color,
+                    language=language,
+                    context_before=context_before,
+                    context_after=context_after,
+                    visual_id=visual_id,
+                    visual_query=visual_query,
                 )
 
                 # Download the actual file content if we have API endpoints
@@ -252,6 +266,124 @@ with st.sidebar:
     )
 
     st.divider()
+    
+    st.subheader("🎯 Advanced Options")
+    
+    # Transparency and color options
+    col_trans, col_invert = st.columns(2)
+    with col_trans:
+        transparent_bg = st.checkbox(
+            "Transparent Background",
+            value=False,
+            help="Use transparent background (works best with PNG)"
+        )
+    with col_invert:
+        inverted_colors = st.checkbox(
+            "Invert Colors",
+            value=False,
+            help="Invert the color scheme"
+        )
+    
+    # Language selection
+    languages = {
+        "English": "en",
+        "English (US)": "en-US", 
+        "English (UK)": "en-GB",
+        "Spanish": "es",
+        "Spanish (Spain)": "es-ES",
+        "Spanish (Mexico)": "es-MX",
+        "French": "fr",
+        "French (France)": "fr-FR",
+        "German": "de",
+        "German (Germany)": "de-DE",
+        "Italian": "it",
+        "Italian (Italy)": "it-IT",
+        "Portuguese": "pt",
+        "Portuguese (Brazil)": "pt-BR",
+        "Dutch": "nl",
+        "Dutch (Netherlands)": "nl-NL",
+        "Russian": "ru",
+        "Russian (Russia)": "ru-RU",
+        "Chinese (Simplified)": "zh-CN",
+        "Chinese (Traditional)": "zh-TW",
+        "Japanese": "ja",
+        "Japanese (Japan)": "ja-JP",
+        "Korean": "ko",
+        "Korean (Korea)": "ko-KR",
+        "Arabic": "ar",
+        "Hindi": "hi",
+        "Turkish": "tr",
+        "Turkish (Turkey)": "tr-TR",
+        "Polish": "pl",
+        "Polish (Poland)": "pl-PL",
+        "Swedish": "sv",
+        "Swedish (Sweden)": "sv-SE",
+        "Danish": "da",
+        "Danish (Denmark)": "da-DK",
+        "Norwegian": "no",
+        "Norwegian (Norway)": "no-NO",
+        "Finnish": "fi",
+        "Finnish (Finland)": "fi-FI"
+    }
+    
+    selected_language = st.selectbox(
+        "Language",
+        options=list(languages.keys()),
+        index=0,
+        help="Select the language for your visual content (BCP 47 language tags)"
+    )
+    language_code = languages[selected_language]
+    
+    st.divider()
+    
+    st.subheader("🔄 Regeneration Options")
+    st.caption("Optional: Regenerate existing visuals or search for specific visual types")
+    
+    with st.expander("Visual Regeneration Settings", expanded=False):
+        regen_mode = st.radio(
+            "Mode",
+            ["New Visual", "Regenerate Existing", "Search Visual Type"],
+            help="Choose how to generate your visual"
+        )
+        
+        visual_id = None
+        visual_query = None
+        
+        if regen_mode == "Regenerate Existing":
+            visual_id = st.text_input(
+                "Visual ID",
+                placeholder="e.g., 5UCQJLAV5S6NXEWS2PBJF54UYPW5NZ4G",
+                help="Enter the ID of an existing visual to regenerate with new content"
+            )
+            if visual_id and variations > 1:
+                st.warning("⚠️ When regenerating, only 1 variation is allowed")
+                variations = 1
+                
+        elif regen_mode == "Search Visual Type":
+            visual_types = [
+                "mindmap",
+                "flowchart",
+                "timeline",
+                "diagram",
+                "infographic",
+                "chart",
+                "graph",
+                "process",
+                "hierarchy",
+                "network",
+                "venn",
+                "matrix",
+                "cycle",
+                "pyramid",
+                "funnel"
+            ]
+            visual_query = st.selectbox(
+                "Visual Type",
+                options=visual_types,
+                help="Search for a specific type of visual"
+            )
+
+    st.divider()
 
     with st.expander("ℹ️ About Styles", expanded=False):
         if selected_style in filtered_styles:
@@ -261,6 +393,20 @@ with st.sidebar:
             st.write(f"Category: {selected_style_info.category.value}")
         else:
             st.write("Selected style not found in current category.")
+
+# Context fields
+with st.expander("📋 Context Options (Optional)", expanded=False):
+    st.caption("Add context to help generate more meaningful visuals")
+    context_before = st.text_input(
+        "Context Before",
+        placeholder="e.g., 'Introduction to' or 'Welcome to'",
+        help="Text context that appears before the main content"
+    )
+    context_after = st.text_input(
+        "Context After",
+        placeholder="e.g., 'for beginners' or 'explained simply'",
+        help="Text context that appears after the main content"
+    )
 
 content = st.text_area(
     "📝 Enter your content to visualize:",
@@ -319,6 +465,13 @@ if generate_button:
                     width=width,
                     height=height,
                     variations=variations,
+                    transparent_background=transparent_bg,
+                    inverted_color=inverted_colors,
+                    language=language_code,
+                    context_before=context_before if 'context_before' in locals() and context_before else None,
+                    context_after=context_after if 'context_after' in locals() and context_after else None,
+                    visual_id=visual_id if 'visual_id' in locals() and visual_id else None,
+                    visual_query=visual_query if 'visual_query' in locals() and visual_query else None,
                 )
 
                 # Defensive: result could be None or a tuple
@@ -415,18 +568,28 @@ if generate_button:
                         )
 
                 with st.expander("📊 Generation Details"):
-                    st.json(
-                        {
-                            "request_id": getattr(result, "request_id", None),
-                            "style": selected_style,
-                            "format": format_type,
-                            "variations": variations,
-                            "dimensions": f"{width}x{height}"
-                            if width
-                            else "SVG (scalable)",
-                            "files_generated": len(files_to_display),
-                        }
-                    )
+                    details = {
+                        "request_id": getattr(result, "request_id", None),
+                        "style": selected_style,
+                        "format": format_type,
+                        "variations": variations,
+                        "dimensions": f"{width}x{height}"
+                        if width
+                        else "SVG (scalable)",
+                        "files_generated": len(files_to_display),
+                        "language": language_code if 'language_code' in locals() else None,
+                        "transparent_background": transparent_bg if 'transparent_bg' in locals() else False,
+                        "inverted_colors": inverted_colors if 'inverted_colors' in locals() else False,
+                    }
+                    if 'context_before' in locals() and context_before:
+                        details["context_before"] = context_before
+                    if 'context_after' in locals() and context_after:
+                        details["context_after"] = context_after
+                    if 'visual_id' in locals() and visual_id:
+                        details["visual_id"] = visual_id
+                    if 'visual_query' in locals() and visual_query:
+                        details["visual_query"] = visual_query
+                    st.json(details)
 
             except Exception as e:
                 st.error(f"❌ Generation failed: {str(e)}")
