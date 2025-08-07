@@ -284,8 +284,27 @@ with st.container():
         st.markdown("- Generate multiple variations for options")
 
 st.markdown("---")
+
+# Version info in footer
+import subprocess
+from datetime import datetime
+
+def get_git_info():
+    try:
+        commit = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'], text=True).strip()
+        branch = subprocess.check_output(['git', 'branch', '--show-current'], text=True).strip()
+        return f"v0.2.0 | {branch}@{commit}"
+    except:
+        return "v0.2.0"
+
+version_info = get_git_info()
+deploy_time = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
+
 st.markdown(
-    "<div style='text-align: center; color: #888;'>Powered by <a href='https://napkin.ai'>Napkin AI</a> | "
-    "Built with <a href='https://streamlit.io'>Streamlit</a></div>",
+    f"<div style='text-align: center; color: #888;'>"
+    f"Powered by <a href='https://napkin.ai'>Napkin AI</a> | "
+    f"Built with <a href='https://streamlit.io'>Streamlit</a><br>"
+    f"<small>{version_info} | Last updated: {deploy_time}</small>"
+    f"</div>",
     unsafe_allow_html=True
 )
