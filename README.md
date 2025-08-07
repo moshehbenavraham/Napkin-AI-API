@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue?style=for-the-badge&logo=python&logoColor=white)
 ![Poetry](https://img.shields.io/badge/Poetry-2.0%2B-60A5FA?style=for-the-badge&logo=poetry&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
-![Version](https://img.shields.io/badge/version-0.1.3-purple?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-0.2.1-purple?style=for-the-badge)
 ![Status](https://img.shields.io/badge/status-MVP%20Complete-success?style=for-the-badge)
 
 **Transform text into stunning visuals with the power of AI** ✨
@@ -302,11 +302,13 @@ We love contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guideli
 - [x] Async operations
 - [x] Comprehensive testing
 
-### ✅ Phase 2: Web Interface (Complete)
+### ✅ Phase 2: Web Interface (Complete - v0.2.1)
 - [x] Streamlit web application
 - [x] Interactive style browser
 - [x] Real-time visual generation
 - [x] Download functionality
+- [x] Authenticated file downloads
+- [x] Error handling and recovery
 
 ### 🚧 Phase 3: Enhanced Features (Coming Soon)
 - [ ] Batch processing
@@ -324,8 +326,36 @@ We love contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guideli
 - 🛡️ `.env` files are gitignored by default
 - ✅ Input validation on all parameters
 - 🔄 Secure HTTPS communication only
+- 🔑 Authenticated file downloads with Bearer tokens
+- 🌐 Web interface supports environment-based token configuration
 
 See [SECURITY.md](docs/SECURITY.md) for full security practices.
+
+## 🐛 Troubleshooting
+
+### Web Interface Issues
+
+**403 Forbidden errors when viewing generated images**
+- Fixed in v0.2.1 - update to latest version
+- The app now properly authenticates file download requests
+
+**"Authorization header is required" error**
+- Ensure your API token is correctly set
+- Check that NAPKIN_API_TOKEN environment variable is exported
+
+**Dependabot Python version errors**
+- Fixed in v0.2.1 - Python requirement simplified to ^3.10
+- Dependabot now properly parses the version constraint
+
+### CLI Issues
+
+**Rate limit errors**
+- The client automatically retries with exponential backoff
+- Default: 60 requests/minute limit
+
+**File not found errors**
+- Ensure output directory exists or use default `./data/visuals`
+- Check file permissions
 
 ## 📄 License
 

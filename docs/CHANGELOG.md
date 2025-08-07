@@ -3,6 +3,24 @@
 All notable changes to this project are documented in this file.
 The format follows Keep a Changelog, and the project aims to follow Semantic Versioning.
 
+## [0.2.1] - 2025-08-07
+
+### Fixed
+- 🔐 **Fixed Authorization Issue** - Resolved 403 Forbidden errors when fetching generated visuals
+  - Added Bearer token authentication to image fetch requests
+  - Implemented pre-download mechanism in worker thread for API endpoints
+  - Properly parse and handle file download URLs that require authentication
+  - Added fallback handling for both direct CDN URLs and authenticated API endpoints
+- Fixed duplicate import statements and moved all imports to top of file
+- Fixed bare except clause to use specific Exception handling
+- Applied proper code formatting with ruff
+
+### Improved
+- Enhanced error handling with try-catch blocks for file downloads
+- Better file URL extraction with support for multiple response formats
+- Added version info display with git commit hash in footer
+- Improved file_id parsing to handle suffixes properly
+
 ## [0.2.0] - 2025-08-07
 
 ### Added

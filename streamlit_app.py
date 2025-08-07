@@ -2,16 +2,19 @@ import streamlit as st
 import asyncio
 import requests
 import re
+import subprocess
+import os
+import base64
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
+
 from src.core.generator import VisualGenerator
 from src.utils.constants import STYLES
 from src.utils.config import Settings
-import os
-from concurrent.futures import ThreadPoolExecutor
 
 st.set_page_config(
-    page_title="Napkin AI Visual Generator",
-    page_icon="🎨",
-    layout="wide"
+    page_title="Napkin AI Visual Generator", page_icon="🎨", layout="wide"
 )
 
 st.title("🎨 Napkin AI Visual Generator")
@@ -21,26 +24,61 @@ st.markdown("Transform your text into beautiful visuals using AI")
 PNG_DEFAULT_WIDTH = 1920
 PNG_DEFAULT_HEIGHT = 1080
 MAX_TOTAL_PIXELS = 16777216  # 16 MP safety cap
+MIN_CONTENT_LENGTH = 3  # basic sanity guard to avoid accidental empty prompts
+
 
 def sanitize_filename(name: str) -> str:
+    """Return a filesystem-friendly lowercase filename."""
     return re.sub(r"[^a-zA-Z0-9._-]+", "_", name).strip("_").lower()
 
-def fetch_bytes(url: str, timeout: int = 30) -> bytes:
-    resp = requests.get(url, timeout=timeout)
+
+@st.cache_data(show_spinner=False)
+def fetch_bytes(url: str, timeout: int = 30, api_token: Optional[str] = None) -> bytes:
+    """
+    Download bytes from a URL with optional Napkin API auth header.
+    Cached by Streamlit to avoid redundant network calls across reruns.
+    """
+    headers: Dict[str, str] = {}
+    if api_token and "api.napkin.ai" in url:
+        headers["Authorization"] = f"Bearer {api_token}"
+    resp = requests.get(url, timeout=timeout, headers=headers)
     resp.raise_for_status()
     return resp.content
 
-def run_generation_in_worker(api_token: str, content: str, selected_style: str, format_type: str, width, height, variations: int):
+
+def _render_svg(svg_bytes: bytes, *, height: Optional[int] = None, width: Optional[int] = None) -> None:
+    """
+    Render SVG bytes using an HTML <img> data URI to preserve vector fidelity.
+    """
+    import streamlit.components.v1 as components
+
+    b64 = base64.b64encode(svg_bytes).decode("utf-8")
+    style_dim = ""
+    if width and height:
+        style_dim = f"style='width:100%; max-width:{width}px;'"
+    html = f"<img {style_dim} src='data:image/svg+xml;base64,{b64}'/>"
+    components.html(html, height=height or 400, scrolling=False)
+
+
+def run_generation_in_worker(
+    api_token: str,
+    content: str,
+    selected_style: str,
+    format_type: str,
+    width: Optional[int],
+    height: Optional[int],
+    variations: int,
+):
     """
     Execute the async VisualGenerator.generate in a dedicated thread with its own event loop
     to avoid interfering with Streamlit's runtime.
     """
+
     def _runner():
         async def _gen():
             settings = Settings(napkin_api_token=api_token)
             async with VisualGenerator(settings) as generator:
                 # generate returns a tuple of (StatusResponse, List[Path])
-                # We only need the StatusResponse which has the files URLs
                 status_response, _ = await generator.generate(
                     content=content,
                     style=selected_style,
@@ -48,9 +86,64 @@ def run_generation_in_worker(api_token: str, content: str, selected_style: str, 
                     width=width,
                     height=height,
                     variations=variations,
-                    save_files=False  # Don't save to disk, just get URLs
+                    save_files=False,  # Don't save to disk, just get URLs
                 )
+
+                # Download the actual file content if we have API endpoints
+                if hasattr(status_response, "files") and status_response.files:
+                    downloaded_files = []
+                    for file_info in status_response.files:
+                        if isinstance(file_info, dict):
+                            # If we have an API endpoint URL, download it
+                            if (
+                                "url" in file_info
+                                and "/v1/visual/" in file_info["url"]
+                                and "/file/" in file_info["url"]
+                            ):
+                                # Parse the URL to get request_id and file_id
+                                match = re.search(
+                                    r"/v1/visual/([^/]+)/file/([^/]+)", file_info["url"]
+                                )
+                                if match:
+                                    request_id, file_id = match.groups()
+                                    # Remove any suffix like _c from file_id
+                                    file_id = (
+                                        file_id.split("_")[0]
+                                        if "_" in file_id
+                                        else file_id
+                                    )
+                                    try:
+                                        # Download using the client
+                                        content_bytes = (
+                                            await generator.client.download_file(
+                                                request_id, file_id
+                                            )
+                                        )
+                                        # Store the content directly
+                                        downloaded_files.append(
+                                            {
+                                                "content": content_bytes,
+                                                "format": file_info.get(
+                                                    "format", format_type
+                                                ),
+                                            }
+                                        )
+                                    except Exception:
+                                        # If download fails, keep the original URL
+                                        downloaded_files.append(file_info)
+                            else:
+                                # It's a direct URL, keep it as is
+                                downloaded_files.append(file_info)
+                        else:
+                            # Not a dict, keep as is
+                            downloaded_files.append(file_info)
+
+                    # Only set downloaded_files if we have any
+                    if downloaded_files:
+                        status_response.downloaded_files = downloaded_files
+
                 return status_response
+
         loop = asyncio.new_event_loop()
         try:
             asyncio.set_event_loop(loop)
@@ -62,6 +155,7 @@ def run_generation_in_worker(api_token: str, content: str, selected_style: str, 
         future = ex.submit(_runner)
         return future.result()
 
+
 with st.sidebar:
     st.header("⚙️ Settings")
 
@@ -69,7 +163,7 @@ with st.sidebar:
     api_token = env_token or st.text_input(
         "API Token",
         type="password",
-        help="Enter your Napkin AI API token. You can also set it as NAPKIN_API_TOKEN environment variable."
+        help="Enter your Napkin AI API token. You can also set it as NAPKIN_API_TOKEN environment variable.",
     )
 
     if env_token:
@@ -95,10 +189,12 @@ with st.sidebar:
     style_category = st.selectbox(
         "Category",
         options=categories,
-        help="Choose a style category to filter available styles"
+        help="Choose a style category to filter available styles",
     )
 
-    filtered_styles = {k: v for k, v in STYLES.items() if v.category.value == style_category}
+    filtered_styles = {
+        k: v for k, v in STYLES.items() if v.category.value == style_category
+    }
     if not filtered_styles:
         st.warning("No styles in this category.")
         st.stop()
@@ -106,7 +202,7 @@ with st.sidebar:
     selected_style = st.selectbox(
         "Visual Style",
         options=list(filtered_styles.keys()),
-        format_func=lambda x: f"{filtered_styles[x].name} - {filtered_styles[x].description}"
+        format_func=lambda x: f"{filtered_styles[x].name} - {filtered_styles[x].description}",
     )
 
     st.divider()
@@ -116,21 +212,37 @@ with st.sidebar:
     format_type = st.radio(
         "Output Format",
         ["svg", "png"],
-        help="SVG for scalable graphics, PNG for raster images"
+        help="SVG for scalable graphics, PNG for raster images",
     )
 
     col_w, col_h = st.columns(2)
     if format_type == "png":
         with col_w:
-            width = st.number_input("Width", min_value=100, max_value=4096, value=PNG_DEFAULT_WIDTH, step=100)
+            width = st.number_input(
+                "Width",
+                min_value=100,
+                max_value=4096,
+                value=PNG_DEFAULT_WIDTH,
+                step=100,
+            )
         with col_h:
-            height = st.number_input("Height", min_value=100, max_value=4096, value=PNG_DEFAULT_HEIGHT, step=100)
+            height = st.number_input(
+                "Height",
+                min_value=100,
+                max_value=4096,
+                value=PNG_DEFAULT_HEIGHT,
+                step=100,
+            )
 
         # Pixel cap and hint
-        total_px = width * height
+        total_px = int(width) * int(height)
         st.caption(f"Resolution: {width}×{height} (~{total_px/1_000_000:.1f} MP)")
         if total_px > MAX_TOTAL_PIXELS:
-            st.warning(f"Resolution exceeds {MAX_TOTAL_PIXELS:,} pixels. Consider reducing size.")
+            st.warning(
+                f"Resolution exceeds {MAX_TOTAL_PIXELS:,} pixels. Consider reducing size."
+            )
+            # Hard guard to prevent OOM or server overload
+            st.stop()
     else:
         width = height = None
 
@@ -139,7 +251,7 @@ with st.sidebar:
         min_value=1,
         max_value=4,
         value=1,
-        help="Generate multiple variations of the same content"
+        help="Generate multiple variations of the same content",
     )
 
     st.divider()
@@ -157,13 +269,19 @@ content = st.text_area(
     "📝 Enter your content to visualize:",
     height=200,
     placeholder="Describe what you want to visualize... For example:\n\n- A workflow diagram showing user authentication process\n- The solar system with all planets and their orbits\n- A mind map about machine learning concepts\n- An infographic about climate change statistics",
-    help="Be descriptive! The more detail you provide, the better the visual will be."
+    help="Be descriptive! The more detail you provide, the better the visual will be.",
 )
+trimmed_content = content.strip()
 
 col1, col2, col3 = st.columns([1, 1, 3])
 with col1:
-    ready = bool(api_token) and bool(content.strip())
-    generate_button = st.button("🚀 Generate Visual", type="primary", use_container_width=True, disabled=not ready)
+    ready = bool(api_token) and bool(trimmed_content)
+    generate_button = st.button(
+        "🚀 Generate Visual",
+        type="primary",
+        use_container_width=True,
+        disabled=not ready,
+    )
 with col2:
     clear_button = st.button("🗑️ Clear", use_container_width=True)
 
@@ -171,12 +289,17 @@ if clear_button:
     st.rerun()
 
 if generate_button:
-    if not content.strip():
+    if not trimmed_content:
         st.error("❌ Please enter some content to visualize")
+    elif len(trimmed_content) < MIN_CONTENT_LENGTH:
+        st.error("❌ Content is too short. Please provide more details.")
     elif not api_token:
         st.error("❌ API token is required. Please enter it in the sidebar.")
     else:
-        with st.spinner(f"🎨 Generating {variations} visual(s) in {selected_style} style..."):
+        with st.spinner(
+            f"🎨 Generating {variations} visual(s) in {selected_style} style..."
+        ):
+
             async def generate():
                 settings = Settings(napkin_api_token=api_token)
                 async with VisualGenerator(settings) as generator:
@@ -186,38 +309,43 @@ if generate_button:
                         format=format_type,
                         width=width,
                         height=height,
-                        variations=variations
+                        variations=variations,
                     )
-            
+
             try:
                 # Run async generation in a dedicated worker thread/event loop
                 result = run_generation_in_worker(
                     api_token=api_token,
-                    content=content,
+                    content=trimmed_content,
                     selected_style=selected_style,
                     format_type=format_type,
                     width=width,
                     height=height,
-                    variations=variations
+                    variations=variations,
                 )
 
-                # Extract URLs from the files attribute
-                file_urls = []
-                if hasattr(result, 'files') and result.files:
-                    for file_info in result.files:
-                        if isinstance(file_info, dict):
-                            # Handle dict format: {id, url, format, etc.}
-                            if 'url' in file_info:
-                                file_urls.append(file_info['url'])
-                        elif isinstance(file_info, str):
-                            # Handle direct URL strings
-                            file_urls.append(file_info)
-                
-                if not file_urls:
+                # Defensive: result could be None or missing attributes
+                if result is None:
+                    st.error("No response from generator. Please try again.")
+                    st.stop()
+
+                # Check if we have downloaded files
+                files_to_display: List[Any] = []
+
+                if hasattr(result, "downloaded_files") and getattr(result, "downloaded_files"):
+                    # We have pre-downloaded content
+                    files_to_display = result.downloaded_files
+                elif hasattr(result, "files") and getattr(result, "files"):
+                    # Fallback to URL-based files
+                    files_to_display = result.files
+
+                if not files_to_display:
                     st.error("No files were generated. Please try again.")
                     st.stop()
-                
-                st.success(f"✅ Successfully generated {len(file_urls)} visual(s)!")
+
+                st.success(
+                    f"✅ Successfully generated {len(files_to_display)} visual(s)!"
+                )
 
                 st.divider()
                 st.subheader("🖼️ Generated Visuals")
@@ -226,44 +354,81 @@ if generate_button:
                 grid_cols = 1 if variations == 1 else min(variations, 3)
                 cols = st.columns(grid_cols)
 
-                for idx, file_url in enumerate(file_urls):
+                for idx, file_data in enumerate(files_to_display):
                     target_col = cols[0] if grid_cols == 1 else cols[idx % grid_cols]
                     with target_col:
-                        try:
-                            content_bytes = fetch_bytes(file_url, timeout=30)
-                        except requests.RequestException as re:
-                            st.warning(f"Failed to fetch visual v{idx+1}: {re}")
+                        content_bytes = None
+
+                        if isinstance(file_data, dict):
+                            if "content" in file_data:
+                                # Pre-downloaded content
+                                content_bytes = file_data["content"]
+                            elif "url" in file_data:
+                                # Try to fetch from URL
+                                try:
+                                    content_bytes = fetch_bytes(
+                                        file_data["url"],
+                                        timeout=30,
+                                        api_token=api_token,
+                                    )
+                                except requests.RequestException as re:
+                                    st.warning(f"Failed to fetch visual v{idx+1}: {re}")
+                                    continue
+                        elif isinstance(file_data, str):
+                            # Direct URL
+                            try:
+                                content_bytes = fetch_bytes(
+                                    file_data, timeout=30, api_token=api_token
+                                )
+                            except requests.RequestException as re:
+                                st.warning(f"Failed to fetch visual v{idx+1}: {re}")
+                                continue
+
+                        if not content_bytes:
+                            st.warning(f"No content available for visual v{idx+1}")
                             continue
 
                         mime = "image/png" if format_type == "png" else "image/svg+xml"
-                        st.image(content_bytes, use_container_width=True, caption=None)
 
-                        file_name = f"napkin_{sanitize_filename(selected_style)}" + \
-                                    (f"_v{idx+1}" if variations > 1 else f"_{idx+1}") + \
-                                    f".{format_type}"
+                        # Display according to format
+                        if format_type == "png":
+                            st.image(content_bytes, use_container_width=True, caption=None)
+                        else:
+                            # Render SVG preserving vector quality
+                            _render_svg(content_bytes)
+
+                        file_name = (
+                            f"napkin_{sanitize_filename(selected_style)}"
+                            + (f"_v{idx+1}" if variations > 1 else f"_{idx+1}")
+                            + f".{format_type}"
+                        )
 
                         st.download_button(
                             label=f"⬇️ Download{' v'+str(idx+1) if variations>1 else ''}",
                             data=content_bytes,
                             file_name=file_name,
                             mime=mime,
-                            use_container_width=True
+                            use_container_width=True,
                         )
 
                 with st.expander("📊 Generation Details"):
-                    st.json({
-                        "request_id": getattr(result, "request_id", None),
-                        "style": selected_style,
-                        "format": format_type,
-                        "variations": variations,
-                        "dimensions": f"{width}x{height}" if width else "SVG (scalable)",
-                        "files_generated": len(file_urls)
-                    })
+                    st.json(
+                        {
+                            "request_id": getattr(result, "request_id", None),
+                            "style": selected_style,
+                            "format": format_type,
+                            "variations": variations,
+                            "dimensions": f"{width}x{height}"
+                            if width
+                            else "SVG (scalable)",
+                            "files_generated": len(files_to_display),
+                        }
+                    )
 
             except Exception as e:
                 st.error(f"❌ Generation failed: {str(e)}")
                 with st.expander("🔍 Error Details"):
-                    st.code(str(e))
+                    st.code(repr(e))
 
 st.divider()
 
@@ -276,7 +441,9 @@ with st.container():
         st.markdown("- [Style Gallery](https://napkin.ai/styles)")
     with col2:
         st.markdown("### 🎨 Available Styles")
-        st.markdown(f"**{len(STYLES)}** unique visual styles across **{len(categories)}** categories")
+        st.markdown(
+            f"**{len(STYLES)}** unique visual styles across **{len(categories)}** categories"
+        )
     with col3:
         st.markdown("### 💡 Tips")
         st.markdown("- Be descriptive in your content")
@@ -286,19 +453,25 @@ with st.container():
 st.markdown("---")
 
 # Version info in footer
-import subprocess
-from datetime import datetime
 
-def get_git_info():
+
+@st.cache_resource(show_spinner=False)
+def get_git_info() -> str:
+    """Return a short version string including branch@commit if available."""
     try:
-        commit = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'], text=True).strip()
-        branch = subprocess.check_output(['git', 'branch', '--show-current'], text=True).strip()
-        return f"v0.2.0 | {branch}@{commit}"
-    except:
-        return "v0.2.0"
+        commit = subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"], text=True
+        ).strip()
+        branch = subprocess.check_output(
+            ["git", "branch", "--show-current"], text=True
+        ).strip()
+        return f"v0.2.1 | {branch}@{commit}"
+    except Exception:
+        return "v0.2.1"
+
 
 version_info = get_git_info()
-deploy_time = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
+deploy_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
 st.markdown(
     f"<div style='text-align: center; color: #888;'>"
@@ -306,5 +479,5 @@ st.markdown(
     f"Built with <a href='https://streamlit.io'>Streamlit</a><br>"
     f"<small>{version_info} | Last updated: {deploy_time}</small>"
     f"</div>",
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )

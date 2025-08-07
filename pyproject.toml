@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "napkin-api-playground"
-version = "0.2.0"
+version = "0.2.1"
 description = "Python playground for the Napkin AI API"
 authors = ["Your Name <your.email@example.com>"]
 readme = "README.md"
