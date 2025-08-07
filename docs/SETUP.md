@@ -4,7 +4,7 @@ Overview
 This guide covers installation and configuration for the current CLI and client library. Any web UI or gallery/database configuration alluded to elsewhere is future scope and intentionally omitted here.
 
 Prerequisites
-- Python 3.9 or higher
+- Python 3.10 or higher
 - pip or Poetry
 - Napkin API token
 

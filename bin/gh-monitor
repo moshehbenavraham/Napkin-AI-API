@@ -1,0 +1,10 @@
+#!/bin/bash
+# GitHub Actions Monitor wrapper
+# Usage: bin/gh-monitor [command] [options]
+
+# Get the directory where this script is located
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$(dirname "$DIR")"
+
+# Run the Python script with all arguments
+exec python3 "$PROJECT_ROOT/scripts/gh_monitor.py" "$@"

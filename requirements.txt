@@ -1,5 +1,5 @@
 # Napkin AI API Playground - Requirements
-# Python 3.9+ required
+# Python 3.10+ required
 # Generated from pyproject.toml
 
 # Core Dependencies

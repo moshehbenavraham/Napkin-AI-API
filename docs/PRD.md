@@ -123,7 +123,7 @@ User Stories:
 ### Technology Stack
 
 Core:
-- Python 3.9+ with async/await
+- Python 3.10+ with async/await
 - Poetry for dependency management
 - python-dotenv for environment configuration (.env support; preferred key OPENAI_API_KEY, legacy API_KEY fallback)
 

@@ -30,7 +30,7 @@ High-level data flow:
 1) CLI parses user input -> 2) Core builds VisualRequest -> 3) Client POST /visual -> 4) Client polls GET /visual/:id/status -> 5) Client downloads files by URL or file id -> 6) Files saved to storage_path
 
 Prerequisites
-- Python 3.9+
+- Python 3.10+
 - Napkin API token (request at api@napkin.ai)
 
 Quick Start

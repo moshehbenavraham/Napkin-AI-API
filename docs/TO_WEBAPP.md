@@ -29,11 +29,11 @@ from src.utils.config import Settings
 
 st.set_page_config(
     page_title="Napkin AI Visual Generator",
-    page_icon="<¨",
+    page_icon="<ï¿½",
     layout="wide"
 )
 
-st.title("<¨ Napkin AI Visual Generator")
+st.title("<ï¿½ Napkin AI Visual Generator")
 
 # Sidebar for configuration
 with st.sidebar:
@@ -77,7 +77,7 @@ content = st.text_area(
     placeholder="Describe what you want to visualize..."
 )
 
-if st.button("=€ Generate Visual", type="primary"):
+if st.button("=ï¿½ Generate Visual", type="primary"):
     if not content:
         st.error("Please enter some content")
     elif not api_token:
@@ -274,7 +274,7 @@ Create `vercel.json`:
 {
   "functions": {
     "api/generate.py": {
-      "runtime": "python3.9"
+      "runtime": "python3.10"
     }
   }
 }
