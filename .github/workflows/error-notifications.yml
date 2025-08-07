@@ -1,0 +1,177 @@
+name: CI with Error Notifications
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+    
+    - name: Install dependencies
+      run: poetry install --with dev
+    
+    - name: Run tests
+      id: test
+      run: |
+        poetry run pytest --tb=short
+      continue-on-error: true
+    
+    - name: Run linting
+      id: lint
+      run: |
+        poetry run ruff check src/
+      continue-on-error: true
+    
+    - name: Run type checking
+      id: typecheck
+      run: |
+        poetry run mypy src/
+      continue-on-error: true
+    
+    # Slack notification on failure
+    - name: Slack Notification on Failure
+      if: steps.test.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.typecheck.outcome == 'failure'
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        text: |
+          🚨 Build Failed in ${{ github.repository }}
+          Branch: ${{ github.ref }}
+          Commit: ${{ github.sha }}
+          Author: ${{ github.actor }}
+          
+          Test Status: ${{ steps.test.outcome }}
+          Lint Status: ${{ steps.lint.outcome }}
+          Type Check: ${{ steps.typecheck.outcome }}
+          
+          View logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+    
+    # Discord notification option
+    - name: Discord Notification on Failure
+      if: steps.test.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.typecheck.outcome == 'failure'
+      uses: sarisia/actions-status-discord@v1
+      with:
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}
+        title: "Build Failed"
+        description: |
+          **Repository:** ${{ github.repository }}
+          **Branch:** ${{ github.ref }}
+          **Author:** ${{ github.actor }}
+          
+          **Test Result:** ${{ steps.test.outcome }}
+          **Lint Result:** ${{ steps.lint.outcome }}
+          **Type Check:** ${{ steps.typecheck.outcome }}
+        color: 0xff0000
+    
+    # Email notification using SendGrid
+    - name: Send Email on Failure
+      if: failure()
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        secure: true
+        username: ${{ secrets.EMAIL_USERNAME }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: "❌ GitHub Action failed in ${{ github.repository }}"
+        to: ${{ secrets.NOTIFICATION_EMAIL }}
+        from: GitHub Actions
+        body: |
+          Build failed in ${{ github.repository }}
+          
+          Repository: ${{ github.repository }}
+          Branch: ${{ github.ref }}
+          Commit: ${{ github.sha }}
+          Author: ${{ github.actor }}
+          Message: ${{ github.event.head_commit.message }}
+          
+          View details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    
+    # Create GitHub Issue on failure
+    - name: Create Issue on Failure
+      if: failure() && github.event_name == 'push'
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const issue = await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: `🚨 Build Failed: ${context.sha.substring(0, 7)}`,
+            body: `## Build Failure Report
+            
+            **Workflow:** ${context.workflow}
+            **Run ID:** ${context.runId}
+            **Branch:** ${context.ref}
+            **Commit:** ${context.sha}
+            **Author:** ${context.actor}
+            
+            ### Failed Steps:
+            - Test: ${{ steps.test.outcome }}
+            - Lint: ${{ steps.lint.outcome }}
+            - Type Check: ${{ steps.typecheck.outcome }}
+            
+            [View Logs](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+            
+            ---
+            *This issue was automatically created by GitHub Actions*`,
+            labels: ['bug', 'ci-failure']
+          });
+    
+    # Send to custom webhook/API
+    - name: Send to Custom API
+      if: failure()
+      run: |
+        curl -X POST ${{ secrets.ERROR_API_ENDPOINT }} \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer ${{ secrets.ERROR_API_TOKEN }}" \
+          -d '{
+            "repository": "${{ github.repository }}",
+            "branch": "${{ github.ref }}",
+            "commit": "${{ github.sha }}",
+            "author": "${{ github.actor }}",
+            "workflow": "${{ github.workflow }}",
+            "run_id": "${{ github.run_id }}",
+            "run_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+            "test_status": "${{ steps.test.outcome }}",
+            "lint_status": "${{ steps.lint.outcome }}",
+            "typecheck_status": "${{ steps.typecheck.outcome }}",
+            "timestamp": "${{ github.event.head_commit.timestamp }}"
+          }'
+    
+    # PagerDuty integration for critical failures
+    - name: PagerDuty Alert
+      if: failure() && github.ref == 'refs/heads/main'
+      uses: Entle/action-pagerduty-alert@v1
+      with:
+        pagerduty-integration-key: ${{ secrets.PAGERDUTY_INTEGRATION_KEY }}
+        pagerduty-dedup-key: github-action-${{ github.run_id }}
+        event-action: trigger
+        summary: "Production build failed in ${{ github.repository }}"
+        source: GitHub Actions
+        severity: error
+    
+    # Fail the job if any step failed
+    - name: Check Results
+      if: steps.test.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.typecheck.outcome == 'failure'
+      run: exit 1

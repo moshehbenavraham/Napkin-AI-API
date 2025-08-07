@@ -1,0 +1,63 @@
+name: Error Monitor
+
+on:
+  workflow_run:
+    workflows: ["*"]
+    types: [completed]
+
+jobs:
+  on-failure:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    
+    steps:
+    # Simple webhook notification
+    - name: Send Webhook Notification
+      run: |
+        curl -X POST ${{ secrets.WEBHOOK_URL }} \
+          -H "Content-Type: application/json" \
+          -d '{
+            "text": "❌ Workflow Failed",
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*Workflow Failed*\n*Repository:* ${{ github.repository }}\n*Workflow:* ${{ github.event.workflow_run.name }}\n*Branch:* ${{ github.event.workflow_run.head_branch }}\n*Author:* ${{ github.actor }}"
+                }
+              },
+              {
+                "type": "actions",
+                "elements": [
+                  {
+                    "type": "button",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "View Logs"
+                    },
+                    "url": "${{ github.event.workflow_run.html_url }}"
+                  }
+                ]
+              }
+            ]
+          }'
+    
+    # Log to external service (e.g., Datadog, New Relic, etc.)
+    - name: Send to Monitoring Service
+      env:
+        DD_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+      run: |
+        curl -X POST "https://api.datadoghq.com/api/v1/events" \
+          -H "Content-Type: application/json" \
+          -H "DD-API-KEY: ${DD_API_KEY}" \
+          -d '{
+            "title": "GitHub Action Failed: ${{ github.event.workflow_run.name }}",
+            "text": "Workflow failed in ${{ github.repository }}",
+            "priority": "normal",
+            "tags": [
+              "env:production",
+              "service:github-actions",
+              "repository:${{ github.repository }}"
+            ],
+            "alert_type": "error"
+          }'

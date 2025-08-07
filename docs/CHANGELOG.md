@@ -3,6 +3,69 @@
 All notable changes to this project are documented in this file.
 The format follows Keep a Changelog, and the project aims to follow Semantic Versioning.
 
+## [0.3.1] - 2025-08-07
+
+### Added - Developer Tools
+- 🔍 **GitHub Actions Failure Monitoring** - Quick scripts to check CI failures
+  - `bin/failures` command for instant failure checks
+  - `scripts/check_failures.py` - Reads GitHub token from .env automatically
+  - `scripts/get_github_failures.py` - Full-featured failure analysis with export
+  - `scripts/quick_failures.py` - Ultra-simple one-file script
+- 🔔 **CI/CD Error Notifications** - Automated error reporting workflows
+  - `.github/workflows/error-notifications.yml` - Multi-channel notifications
+  - `.github/workflows/error-monitor.yml` - Simple webhook monitor
+  - `.github/scripts/error_reporter.py` - Advanced Python error reporter
+  - Support for Slack, Discord, Email, GitHub Issues, PagerDuty
+- 📚 **Enhanced Documentation**
+  - `docs/GITHUB_ERROR_MONITORING.md` - Complete setup guide for error notifications
+  - `scripts/README.md` - Guide for failure checking scripts
+  - `scripts/SETUP.md` - Quick setup instructions
+
+### Improved
+- Added GITHUB_TOKEN to .env configuration
+- Created convenient `bin/` directory for quick commands
+- Enhanced documentation structure with new monitoring tools
+
+### Fixed
+- Corrected typo in .env file (GITHUT_API_TOKEN → GITHUB_TOKEN)
+
+## [0.3.0] - 2025-08-07
+
+### Added
+- 🌍 **Multi-Language Support** - Generate visuals in 30+ languages
+  - Support for English, Spanish, French, German, Italian, Portuguese, Dutch, Russian
+  - Chinese (Simplified/Traditional), Japanese, Korean, Arabic, Hindi, Turkish
+  - Polish, Swedish, Danish, Norwegian, Finnish and regional variants
+  - Proper BCP 47 language tag implementation
+- 📋 **Context Options** - Enhanced visual generation with contextual information
+  - `context_before` field for text appearing before main content
+  - `context_after` field for text appearing after main content
+  - Helps generate more meaningful and relevant visuals
+- 🎯 **Advanced Options Panel** - New settings for fine-tuned control
+  - Transparent background toggle (works best with PNG)
+  - Color inversion option for alternate color schemes
+  - Collapsible advanced options section in sidebar
+- 🔄 **Visual Regeneration** - Update and modify existing visuals
+  - Regenerate existing visuals with new content using visual ID
+  - Search for specific visual types (mindmap, flowchart, timeline, etc.)
+  - Support for 15+ visual type queries
+- 🎨 **Enhanced Style Integration** - Complete API style support
+  - All 15+ styles properly mapped with official API IDs
+  - Style categories: Colorful, Casual, Hand-drawn, Formal, Monochrome
+  - Detailed style descriptions and metadata
+
+### Improved
+- Enhanced Streamlit UI with better organization and layout
+- Added expandable sections for better space utilization
+- Improved generation details panel with all parameters displayed
+- Better error handling for visual regeneration modes
+- Updated documentation with comprehensive feature list
+
+### Changed
+- Updated `VisualGenerator` to accept all new API parameters
+- Modified `run_generation_in_worker` to handle extended parameter set
+- Enhanced API models to support visual_id and visual_query parameters
+
 ## [0.2.2] - 2025-08-07
 
 ### Fixed

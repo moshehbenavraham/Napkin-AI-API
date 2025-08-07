@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+"""
+Quick command to check GitHub Actions failures
+Just run: ./failures [number]
+"""
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from scripts.check_failures import *
+
+# Run the main logic from check_failures.py
+if __name__ == "__main__":
+    import scripts.check_failures

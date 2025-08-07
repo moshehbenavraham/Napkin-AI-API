@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Streamlit-based web interface provides an intuitive way to generate visuals using the Napkin AI API without writing code.
+The Streamlit-based web interface provides an intuitive way to generate visuals using the Napkin AI API without writing code. Version 0.3.0 introduces comprehensive API feature support including multi-language generation, visual regeneration, and advanced customization options.
 
 ## Core Features
 
@@ -12,6 +12,17 @@ The Streamlit-based web interface provides an intuitive way to generate visuals 
 - **Multiple variations** (1-4) in a single request
 - **Instant preview** of generated visuals
 - **Direct download** buttons for each visual
+- **Context-aware generation** with before/after text fields
+- **Visual regeneration** using existing visual IDs
+- **Visual type search** for specific diagram types
+
+### 🌍 Multi-Language Support
+
+- **30+ languages** with proper BCP 47 tags
+- **Regional variants** (e.g., en-US, en-GB, es-ES, es-MX)
+- **RTL language support** (Arabic, Hebrew)
+- **Asian languages** (Chinese, Japanese, Korean)
+- **European languages** (French, German, Italian, Spanish, etc.)
 
 ### 🎯 Style Selection
 
@@ -19,6 +30,7 @@ The Streamlit-based web interface provides an intuitive way to generate visuals 
 - **Category filtering** for easier navigation
 - **Style descriptions** and use cases
 - **Interactive style browser** with detailed information
+- **Proper API ID mapping** for all styles
 
 ### 📐 Format Options
 
@@ -27,6 +39,23 @@ The Streamlit-based web interface provides an intuitive way to generate visuals 
 - **Resolution calculator** showing megapixels
 - **16MP safety cap** to prevent excessive sizes
 - **Responsive preview** that adapts to content
+- **Transparent backgrounds** option
+- **Color inversion** for alternate schemes
+
+### 🔄 Visual Regeneration
+
+- **Update existing visuals** with new content
+- **Search visual types** (mindmap, flowchart, timeline, etc.)
+- **15+ visual type queries** supported
+- **Smart validation** for regeneration parameters
+
+### 🎯 Advanced Options
+
+- **Transparency control** for backgrounds
+- **Color inversion** toggle
+- **Context fields** for enhanced meaning
+- **Language selection** dropdown
+- **Collapsible panels** for better organization
 
 ### 🔐 Authentication
 
@@ -91,16 +120,21 @@ else:
 ### Sidebar Configuration
 
 - **API Token** - Secure input with environment variable support
-- **Style Selection** - Category-based filtering
+- **Style Selection** - Category-based filtering with 15+ styles
 - **Format Options** - SVG/PNG with dimension controls
-- **Variations** - Slider for multiple outputs
+- **Variations** - Slider for multiple outputs (1-4)
+- **Advanced Options** - Transparency, color inversion
+- **Language Selection** - 30+ language dropdown
+- **Regeneration Options** - Visual ID or type search
 
 ### Main Content Area
 
+- **Context Fields** - Optional before/after text (expandable)
 - **Text Input** - Large text area with examples
 - **Action Buttons** - Generate and Clear
 - **Results Display** - Grid layout for multiple visuals
 - **Download Options** - Individual download buttons
+- **Generation Details** - Full parameter display
 
 ### Footer Information
 
@@ -109,6 +143,20 @@ else:
 - **Resource links** - Documentation and support
 
 ## Version History
+
+### v0.3.0 (2025-08-07)
+- Added multi-language support (30+ languages)
+- Implemented context options (before/after fields)
+- Added transparency and color inversion controls
+- Implemented visual regeneration with ID
+- Added visual type search functionality
+- Enhanced UI with collapsible sections
+- Improved generation details display
+- Updated all API parameters support
+
+### v0.2.2 (2025-08-07)
+- Fixed Pydantic model field access issues
+- Resolved StatusResponse attribute errors
 
 ### v0.2.1 (2025-08-07)
 - Fixed 403 Forbidden errors with authenticated downloads
@@ -213,6 +261,53 @@ else:
 2. **Slow generation** - Try fewer variations
 3. **Download fails** - Try different browser
 4. **Style not working** - Verify category selection
+
+## Supported Languages
+
+### European Languages
+- English (en, en-US, en-GB)
+- Spanish (es, es-ES, es-MX)
+- French (fr, fr-FR)
+- German (de, de-DE)
+- Italian (it, it-IT)
+- Portuguese (pt, pt-BR)
+- Dutch (nl, nl-NL)
+- Polish (pl, pl-PL)
+- Swedish (sv, sv-SE)
+- Danish (da, da-DK)
+- Norwegian (no, no-NO)
+- Finnish (fi, fi-FI)
+- Turkish (tr, tr-TR)
+- Russian (ru, ru-RU)
+
+### Asian Languages
+- Chinese Simplified (zh-CN)
+- Chinese Traditional (zh-TW)
+- Japanese (ja, ja-JP)
+- Korean (ko, ko-KR)
+- Hindi (hi)
+
+### Middle Eastern Languages
+- Arabic (ar)
+
+## Visual Type Queries
+
+The following visual types can be searched for:
+- mindmap
+- flowchart
+- timeline
+- diagram
+- infographic
+- chart
+- graph
+- process
+- hierarchy
+- network
+- venn
+- matrix
+- cycle
+- pyramid
+- funnel
 
 ---
 

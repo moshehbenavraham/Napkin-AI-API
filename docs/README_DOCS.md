@@ -7,19 +7,25 @@ Napkin AI API Playground provides a production-ready Python CLI and async client
 Quick Navigation
 - Project Overview: ../README.md
 - Setup & Installation: SETUP.md
-- Usage (CLI): USAGE.md
+- Usage (CLI & Web): USAGE.md
 - API Reference (Python): API_REFERENCE.md
+- Web Interface Features: WEB_APP_FEATURES.md
+- GitHub Error Monitoring: GITHUB_ERROR_MONITORING.md
 - Security: SECURITY.md
 - Contributing: CONTRIBUTING.md
 - Changelog: CHANGELOG.md
+- Napkin API Documentation: NAPKIN_AI_API.md
 
 System Architecture Overview
 Components and responsibilities:
+- Web Interface (streamlit_app.py): Interactive Streamlit web application
 - CLI (src/cli/): Typer-based commands, Rich output, progress UX
 - Core (src/core/): Orchestrates request, polling, downloads
 - API Client (src/api/client.py): httpx + tenacity, auth, retries, rate limit parsing
 - Models (src/api/models.py): Pydantic v2 models for requests/status/files/errors
 - Config & Constants (src/utils/): Environment-backed settings and style catalog
+- CI/CD Tools (scripts/): GitHub Actions failure monitoring and reporting
+- Error Workflows (.github/workflows/): Automated error notifications
 High-level data flow:
 1) CLI parses user input -> 2) Core builds VisualRequest -> 3) Client POST /visual -> 4) Client polls GET /visual/:id/status -> 5) Client downloads files by URL or file id -> 6) Files saved to storage_path
 
@@ -74,6 +80,8 @@ napkin generate "Architecture" --output ./data/visuals
 ```
 
 Available Commands
+
+### CLI Commands
 ```bash
 napkin generate "Your content" [OPTIONS]
 napkin styles --list
@@ -81,6 +89,22 @@ napkin styles --category colorful
 napkin config --show
 napkin config --check
 napkin version
+```
+
+### Web Interface
+```bash
+# Launch Streamlit web app
+poetry run streamlit run streamlit_app.py
+```
+
+### CI/CD Monitoring
+```bash
+# Check recent GitHub Actions failures
+bin/failures           # Last 5 failures
+bin/failures 10        # Last 10 failures
+
+# Detailed failure analysis
+python3 scripts/get_github_failures.py --last 10 --jobs
 ```
 
 Project Structure

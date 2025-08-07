@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue?style=for-the-badge&logo=python&logoColor=white)
 ![Poetry](https://img.shields.io/badge/Poetry-2.0%2B-60A5FA?style=for-the-badge&logo=poetry&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
-![Version](https://img.shields.io/badge/version-0.2.2-purple?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-0.3.1-purple?style=for-the-badge)
 ![Status](https://img.shields.io/badge/status-MVP%20Complete-success?style=for-the-badge)
 
 **Transform text into stunning visuals with the power of AI** ✨
@@ -33,7 +33,7 @@ A powerful Python toolkit featuring both a **web interface** and **CLI** that se
 <td>
 
 ### 🌐 Web Interface
-Interactive Streamlit app for easy visual generation
+Interactive Streamlit app with advanced options and multi-language support
 
 ### 🎨 15+ Visual Styles
 Choose from vibrant, sketch, corporate, minimalist, and more
@@ -47,11 +47,11 @@ Generate SVG for scalability or PNG with custom dimensions
 ### ⚡ Async Performance
 Built on httpx with intelligent retry logic and rate limiting
 
-### 🛡️ Type-Safe
-Full Pydantic v2 validation and mypy type checking
+### 🌍 Multi-Language Support
+30+ languages with proper BCP 47 tags for global content
 
-### 📊 Rich Terminal UI
-Beautiful progress bars and formatted output with Rich
+### 🔄 Visual Regeneration
+Regenerate existing visuals or search for specific visual types
 
 </td>
 </tr>
@@ -122,6 +122,15 @@ napkin generate "Architecture" --format png --width 1920 --height 1080
 napkin generate "Neural Network" \
   --context-before "Introduction to" \
   --context-after "for beginners"
+
+# With transparency and color options
+napkin generate "Workflow" --transparent --inverted-color
+
+# Regenerate existing visual
+napkin generate "Updated Content" --visual-id "5UCQJLAV5S6NXEWS2PBJF54UYPW5NZ4G"
+
+# Search for specific visual type
+napkin generate "Project Timeline" --visual-query "timeline"
 ```
 
 ### 🎨 Browse Styles
@@ -270,9 +279,44 @@ NAPKIN_RATE_LIMIT_REQUESTS=60
 | 📙 [API_REFERENCE.md](docs/API_REFERENCE.md) | Python API documentation |
 | 📕 [CHANGELOG.md](docs/CHANGELOG.md) | Version history |
 | 🔐 [SECURITY.md](docs/SECURITY.md) | Security guidelines |
+| 🌐 [WEB_APP_FEATURES.md](docs/WEB_APP_FEATURES.md) | Streamlit web interface features |
+| 🔔 [GITHUB_ERROR_MONITORING.md](docs/GITHUB_ERROR_MONITORING.md) | CI/CD error monitoring setup |
+
+## 🛠️ Developer Tools
+
+### 🔍 GitHub Actions Monitoring
+
+**Quick failure check:**
+```bash
+# Check last 5 CI failures
+bin/failures
+
+# Check last 10 failures
+bin/failures 10
+```
+
+**Error notifications:**
+- Automatic Slack/Discord/Email alerts on CI failures
+- GitHub issue creation for persistent tracking
+- Custom webhook support for any service
+- See [docs/GITHUB_ERROR_MONITORING.md](docs/GITHUB_ERROR_MONITORING.md) for setup
+
+## 🌟 New in Version 0.3.0
+
+### Web Interface Enhancements
+- **🌍 Multi-Language Support**: Generate visuals in 30+ languages
+- **📋 Context Options**: Add context before/after your main content
+- **🎯 Advanced Options**: Transparency, color inversion, and more
+- **🔄 Visual Regeneration**: Update existing visuals with new content
+- **🔍 Visual Type Search**: Find specific visual types (mindmap, timeline, etc.)
+- **🎨 Enhanced Style Browser**: All 15+ styles with proper API integration
+
+### Supported Languages
+English, Spanish, French, German, Italian, Portuguese, Dutch, Russian, Chinese (Simplified/Traditional), Japanese, Korean, Arabic, Hindi, Turkish, Polish, Swedish, Danish, Norwegian, Finnish, and more!
 
 ## 🧪 Development
 
+### Testing & Quality
 ```bash
 # Run tests
 poetry run pytest
@@ -285,6 +329,18 @@ poetry run ruff check src/
 
 # Format code
 poetry run ruff format src/
+```
+
+### CI/CD Monitoring
+```bash
+# Check recent CI failures
+bin/failures
+
+# Check with details
+python3 scripts/get_github_failures.py --last 10 --jobs
+
+# Export failure report
+python3 scripts/get_github_failures.py --export failures.json
 ```
 
 ## 🤝 Contributing
@@ -306,14 +362,16 @@ We love contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guideli
 - [x] Async operations
 - [x] Comprehensive testing
 
-### ✅ Phase 2: Web Interface (Complete - v0.2.2)
+### ✅ Phase 2: Web Interface (Complete - v0.3.0)
 - [x] Streamlit web application
-- [x] Interactive style browser
+- [x] Interactive style browser with categories
 - [x] Real-time visual generation
 - [x] Download functionality
-- [x] Authenticated file downloads
-- [x] Error handling and recovery
-- [x] Fixed Pydantic model field access issues
+- [x] Multi-language support (30+ languages)
+- [x] Context options (before/after)
+- [x] Transparency and color inversion
+- [x] Visual regeneration and search
+- [x] Advanced options panel
 
 ### 🚧 Phase 3: Enhanced Features (Coming Soon)
 - [ ] Batch processing

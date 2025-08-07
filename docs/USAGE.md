@@ -53,6 +53,10 @@ poetry run streamlit run streamlit_app.py
 - **Multiple Variations**: Generate up to 4 variations at once
 - **Custom Dimensions**: Set PNG width/height with megapixel display
 - **Direct Downloads**: One-click download for each generated visual
+- **Multi-Language Support**: Generate visuals in 30+ languages
+- **Context Options**: Add before/after text for better context
+- **Advanced Options**: Transparency, color inversion controls
+- **Visual Regeneration**: Update existing visuals or search types
 - **Error Handling**: Clear error messages with troubleshooting details
 
 ### Troubleshooting Web Interface
@@ -93,9 +97,36 @@ poetry run napkin generate "Neural Networks" \
   --context-before "Introduction to" \
   --context-after "for beginners"
 
+# With transparency and color options
+poetry run napkin generate "Workflow Diagram" \
+  --transparent \
+  --inverted-color
+
+# With language specification
+poetry run napkin generate "Architecture de système" \
+  --language fr-FR
+
+# Regenerate existing visual
+poetry run napkin generate "Updated Content" \
+  --visual-id "5UCQJLAV5S6NXEWS2PBJF54UYPW5NZ4G"
+
+# Search for specific visual type
+poetry run napkin generate "Project Roadmap" \
+  --visual-query "timeline"
+
 # With debug output
 poetry run napkin generate "API Architecture" --debug
 ```
+
+### New CLI Parameters (v0.3.0)
+
+| Parameter | Description | Example |
+|-----------|-------------|------|
+| `--transparent` | Enable transparent background | `--transparent` |
+| `--inverted-color` | Invert color scheme | `--inverted-color` |
+| `--language` | Specify language (BCP 47) | `--language ja-JP` |
+| `--visual-id` | Regenerate existing visual | `--visual-id ABC123` |
+| `--visual-query` | Search visual type | `--visual-query mindmap` |
 
 Commands Overview
 
