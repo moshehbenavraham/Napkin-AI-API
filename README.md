@@ -5,8 +5,9 @@
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue?style=for-the-badge&logo=python&logoColor=white)
 ![Poetry](https://img.shields.io/badge/Poetry-2.0%2B-60A5FA?style=for-the-badge&logo=poetry&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
-![Version](https://img.shields.io/badge/version-0.3.1-purple?style=for-the-badge)
-![Status](https://img.shields.io/badge/status-MVP%20Complete-success?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-0.3.2-purple?style=for-the-badge)
+![Status](https://img.shields.io/badge/status-Production%20Ready-success?style=for-the-badge)
+![CI](https://img.shields.io/badge/CI-Passing-brightgreen?style=for-the-badge)
 
 **Transform text into stunning visuals with the power of AI** ✨
 
@@ -282,7 +283,27 @@ NAPKIN_RATE_LIMIT_REQUESTS=60
 | 🌐 [WEB_APP_FEATURES.md](docs/WEB_APP_FEATURES.md) | Streamlit web interface features |
 | 🔔 [GITHUB_ERROR_MONITORING.md](docs/GITHUB_ERROR_MONITORING.md) | CI/CD error monitoring setup |
 
-## 🛠️ Developer Tools
+## 🧪 Development
+
+### Testing & Quality Assurance
+
+```bash
+# Run all tests
+poetry run pytest
+
+# Run with coverage
+poetry run pytest --cov=src --cov-report=term-missing
+
+# Type checking
+poetry run mypy src/
+
+# Linting and formatting
+poetry run ruff check src/
+poetry run ruff format src/ tests/
+
+# Run all checks
+poetry run ruff check . && poetry run mypy src/ && poetry run pytest
+```
 
 ### 🔍 GitHub Actions Monitoring
 
@@ -294,6 +315,13 @@ bin/failures
 # Check last 10 failures
 bin/failures 10
 ```
+
+**CI/CD Status:**
+- ✅ Python 3.10+ compatibility
+- ✅ All tests passing
+- ✅ Type checking clean
+- ✅ Code formatting validated
+- ✅ Security checks enabled
 
 **Error notifications:**
 - Automatic Slack/Discord/Email alerts on CI failures

@@ -274,13 +274,53 @@ if: failure() && github.event_name == 'push'
     WEBHOOK: ${{ secrets.DEV_WEBHOOK }}
 ```
 
+## 🔍 Monitoring Tools
+
+### Quick Failure Check Scripts
+
+The project includes convenient scripts for checking GitHub Actions failures:
+
+#### Using bin/failures
+```bash
+# Check last 5 failures (default)
+bin/failures
+
+# Check last 10 failures
+bin/failures 10
+```
+
+#### Python Scripts Available
+- **scripts/check_failures.py** - Main failure checking script with .env support
+- **scripts/get_github_failures.py** - Advanced analysis with export options
+- **scripts/quick_failures.py** - Lightweight single-file script
+- **scripts/failures.sh** - Bash alternative using GitHub CLI or curl
+
+#### Setup Requirements
+1. Add `GITHUB_TOKEN` to your `.env` file:
+   ```
+   GITHUB_TOKEN=ghp_yourtoken
+   ```
+
+2. Token permissions needed:
+   - `repo` (for private repos)
+   - `public_repo` (for public repos only)
+
+### CI/CD Status
+As of v0.3.2:
+- ✅ Python 3.10+ compatibility fixed
+- ✅ All tests passing
+- ✅ Type checking clean
+- ✅ Code formatting validated
+- ✅ Security checks enabled
+
 ## 🔗 Resources
 
 - [GitHub Actions Events](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows)
 - [GitHub Actions Contexts](https://docs.github.com/en/actions/learn-github-actions/contexts)
 - [Slack Block Kit Builder](https://app.slack.com/block-kit-builder)
 - [Discord Embed Visualizer](https://autocode.com/tools/discord/embed-builder/)
+- [GitHub Personal Access Tokens](https://github.com/settings/tokens)
 
 ---
 
-Last updated: 2025-08-07
+Last updated: 2025-08-07 (v0.3.2)

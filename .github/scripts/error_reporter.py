@@ -7,7 +7,7 @@ Sends detailed error reports to various services
 import json
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 import requests
 
@@ -36,7 +36,7 @@ class ErrorReporter:
     def _collect_error_data(self) -> Dict[str, Any]:
         """Collect error data from environment and logs"""
         return {
-            'timestamp': datetime.utcnow().isoformat(),
+            'timestamp': datetime.now(timezone.utc).isoformat(),
             'context': self.github_context,
             'run_url': f"{self.github_context['server_url']}/{self.github_context['repository']}/actions/runs/{self.github_context['run_id']}",
             'environment': {

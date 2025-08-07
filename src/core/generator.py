@@ -119,7 +119,9 @@ class VisualGenerator:
             number_of_visuals=variations,
             context_before=context_before,
             context_after=context_after,
-            transparent_background=transparent_background if transparent_background is not None else transparent,
+            transparent_background=transparent_background
+            if transparent_background is not None
+            else transparent,
             inverted_color=inverted_color if inverted_color is not None else inverted,
             width=width,
             height=height,

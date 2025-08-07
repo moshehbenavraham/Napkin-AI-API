@@ -3,6 +3,37 @@
 All notable changes to this project are documented in this file.
 The format follows Keep a Changelog, and the project aims to follow Semantic Versioning.
 
+## [0.3.2] - 2025-08-07
+
+### Fixed - Code Quality & CI/CD
+- 🐛 **CI/CD Pipeline** - Fixed Python version compatibility
+  - Updated CI workflow from Python 3.9 to 3.10+ to match project requirements
+  - Fixed poetry.lock file synchronization issues
+- 🔧 **Code Quality Improvements**
+  - Fixed all ruff linting errors across the codebase
+  - Replaced bare `except:` with `except Exception:` in all scripts
+  - Removed unnecessary f-string placeholders
+  - Fixed unused imports in test files
+  - Formatted code with ruff to maintain consistency
+- 🚨 **Deprecation Fixes**
+  - Updated `datetime.utcnow()` to `datetime.now(timezone.utc)` to address deprecation warning
+- 📝 **Script Improvements**
+  - Fixed Windows line endings (CRLF to LF) in shell scripts
+  - Fixed bash syntax errors in `scripts/failures.sh`
+  - Improved error handling in GitHub failure monitoring scripts
+
+### Improved
+- ✅ **Testing & Validation**
+  - All 18 tests passing with 100% success rate
+  - Type checking clean with mypy
+  - Linting clean with ruff
+  - GitHub Actions workflows validated
+- 📚 **Documentation Updates**
+  - Added development section to README with testing commands
+  - Updated version badge to 0.3.2
+  - Changed status from "MVP Complete" to "Production Ready"
+  - Added CI passing badge
+
 ## [0.3.1] - 2025-08-07
 
 ### Added - Developer Tools

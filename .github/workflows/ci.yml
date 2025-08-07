@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  PYTHON_VERSION: '3.9'
+  PYTHON_VERSION: '3.10'
 
 jobs:
   lint:
@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.10', '3.11', '3.12']
     
     steps:
       - uses: actions/checkout@v4
@@ -88,7 +88,7 @@ jobs:
         run: poetry run pytest --cov=src --cov-report=term-missing --cov-report=xml
       
       - name: Upload coverage to Codecov
-        if: matrix.python-version == '3.9'
+        if: matrix.python-version == '3.10'
         uses: codecov/codecov-action@v4
         with:
           file: ./coverage.xml
@@ -120,3 +120,19 @@ jobs:
           poetry run pip install bandit[toml]
           poetry run bandit -r src/ -ll
         continue-on-error: true
+
+  notify-on-failure:
+    needs: [lint, test, security]
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Report Failure
+        run: |
+          python3 .github/scripts/error_reporter.py
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          CREATE_GITHUB_ISSUE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

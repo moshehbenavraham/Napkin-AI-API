@@ -9,7 +9,6 @@ from src.api.models import (
     VisualRequest,
     RequestStatus,
     OutputFormat,
-    GeneratedFile,
     VisualResponse,
     StatusResponse,
     RateLimitInfo,

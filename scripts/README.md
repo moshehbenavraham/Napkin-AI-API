@@ -1,178 +1,139 @@
 # GitHub Actions Failure Scripts
 
-Simple scripts to quickly check recent GitHub Actions failures.
+Simple tools to monitor GitHub Actions failures for this repository.
 
 ## 🚀 Quick Start
 
-### Option 1: Ultra Simple (Python one-liner)
 ```bash
-# Show last 5 failures
-python scripts/quick_failures.py
+# Check last 5 failures (default)
+bin/failures
 
-# Show last 10 failures
-python scripts/quick_failures.py 10
-```
+# Check last 10 failures
+bin/failures 10
 
-### Option 2: Bash Script (uses gh CLI or curl)
-```bash
-# Show last 5 failures
-./scripts/failures.sh
-
-# Show last 10 failures
-./scripts/failures.sh 10
-```
-
-### Option 3: Full Featured (Python)
-```bash
-# Basic usage
-python scripts/get_github_failures.py
-
-# Show last 10 failures with job details
-python scripts/get_github_failures.py --last 10 --jobs
+# Export failures to JSON
+python scripts/check_failures.py 10 --json failures.json
 
 # Simple one-line format
-python scripts/get_github_failures.py --simple
-
-# Export to JSON
-python scripts/get_github_failures.py --export failures.json
-
-# Specific repository
-python scripts/get_github_failures.py --repo owner/repo --last 20
+python scripts/check_failures.py --simple
 ```
 
-## 🔑 Setup
+## 📁 Files
 
-### Set GitHub Token (Optional but recommended)
+### User Tools
+- **`bin/failures`** - Main command-line tool (wrapper for check_failures.py)
+- **`scripts/check_failures.py`** - Core failure checking script with advanced features
+
+### CI/CD Integration
+- **`.github/scripts/error_reporter.py`** - Automated error reporting for GitHub Actions workflows
+- **`.github/workflows/ci.yml`** - Main CI workflow with integrated failure notifications
+
+## ⚙️ Setup
+
+1. **Add GitHub Token to .env**:
 ```bash
-export GITHUB_TOKEN="your_github_token"
+echo "GITHUB_TOKEN=ghp_your_token_here" >> .env
 ```
 
-Without a token, you'll hit API rate limits quickly (60 requests/hour).
+2. **For CI/CD Notifications** (optional):
+Add these secrets to your GitHub repository:
+- `SLACK_WEBHOOK` - For Slack notifications
+- `DISCORD_WEBHOOK` - For Discord notifications
 
-### Get a GitHub Token
-1. Go to https://github.com/settings/tokens
-2. Generate new token (classic)
-3. Select `repo` scope for private repos, or `public_repo` for public only
-4. Copy token and set as environment variable
+## 📝 Features
 
-## 📊 Examples
+### check_failures.py
+- ✅ Automatic .env file loading
+- ✅ Git repository detection
+- ✅ Detailed or simple output formats
+- ✅ JSON export capability
+- ✅ Failure rate statistics
+- ✅ Human-readable time formatting
 
-### Quick Check
+### error_reporter.py (CI/CD)
+- ✅ Slack notifications
+- ✅ Discord notifications
+- ✅ GitHub issue creation
+- ✅ Custom API webhooks
+- ✅ Detailed error context
+
+## 🔧 Usage Examples
+
+### Command Line
+
 ```bash
-$ python scripts/quick_failures.py 3
+# Basic usage
+bin/failures
 
-🚨 Last 3 failures in moshehbenavraham/Napkin-AI-API:
+# Check specific number of failures
+bin/failures 20
 
-❌ 01/07 15:23 - CI Pipeline - main
-   https://github.com/moshehbenavraham/Napkin-AI-API/actions/runs/123456
+# Export to JSON for analysis
+python scripts/check_failures.py 50 --json analysis.json
 
-❌ 01/07 14:10 - Test Suite - feature/new-api
-   https://github.com/moshehbenavraham/Napkin-AI-API/actions/runs/123455
-
-❌ 01/06 22:45 - Deploy - main
-   https://github.com/moshehbenavraham/Napkin-AI-API/actions/runs/123454
+# Quick overview with simple format
+python scripts/check_failures.py 10 --simple
 ```
 
-### Detailed View
-```bash
-$ python scripts/get_github_failures.py --last 1 --jobs
+### CI/CD Integration
 
+The CI workflow automatically reports failures when:
+- Tests fail
+- Linting fails
+- Type checking fails
+- Security checks fail
+
+Notifications are sent to configured channels (Slack, Discord) and can create GitHub issues for main branch failures.
+
+## 🔐 Security
+
+- GitHub tokens are read from `.env` file (never commit this!)
+- The `.env` file is gitignored for security
+- CI/CD uses GitHub Secrets for sensitive data
+
+## 📊 Output Examples
+
+### Standard Output
+```
+✅ Using GitHub token from .env file
 📂 Repository: moshehbenavraham/Napkin-AI-API
-🔍 Fetching last 1 failures...
+🔍 Fetching last 5 failures...
 
-============================================================
-❌ CI Pipeline - 2h ago
-============================================================
-📅 Date: 2025-01-07 15:23 UTC
-🔢 Run: #42
-🌿 Branch: main
-👤 Author: John Doe
-💬 Message: Fix API endpoint validation
-🔗 URL: https://github.com/moshehbenavraham/Napkin-AI-API/actions/runs/123456
+🚨 Last 5 failures:
+------------------------------------------------------------
+❌ CI #16 - 1h ago
+   📅 2025-08-07 00:52 UTC
+   🌿 Branch: main
+   👤 Author: Mosheh Ben Avraham
+   💬 Fix dependencies
+   🔗 https://github.com/moshehbenavraham/Napkin-AI-API/actions/runs/16792301463
 
-  Failed Steps:
-  • Run Tests
-    - Run pytest
-  • Type Check
-    - Run mypy
-
-📊 Summary: 1 failures found
-📈 Failure rate: 15.2% (last 50 runs)
+📊 Stats: 23.5% failure rate (last 50 runs)
 ```
 
-### Export for Analysis
-```bash
-$ python scripts/get_github_failures.py --last 50 --export failures.json
-✅ Exported 50 failures to failures.json
-
-$ jq '.failures[0]' failures.json
-{
-  "id": 123456,
-  "name": "CI Pipeline",
-  "run_number": 42,
-  "created_at": "2025-01-07T15:23:00Z",
-  "branch": "main",
-  "author": "John Doe",
-  "message": "Fix API endpoint validation",
-  "url": "https://github.com/...",
-  "commit_sha": "abc123..."
-}
+### Simple Output
+```
+❌ 08/07 00:52 - CI - main
+❌ 08/07 00:46 - CI - develop
+❌ 08/07 00:38 - Tests - feature/new-api
 ```
 
-## 🎯 Use Cases
+## 🆘 Troubleshooting
 
-1. **Morning Check**: See what failed overnight
-   ```bash
-   python scripts/quick_failures.py 10
-   ```
+| Issue | Solution |
+|-------|----------|
+| No token found | Add `GITHUB_TOKEN=ghp_...` to `.env` file |
+| 403 Error | Check token permissions or rate limit |
+| 404 Error | Verify repository name and access rights |
+| Can't detect repo | Run from git repository or set `GITHUB_REPOSITORY` env var |
 
-2. **Debug Session**: Get detailed failure info
-   ```bash
-   python scripts/get_github_failures.py --jobs --last 5
-   ```
+## 📈 Best Practices
 
-3. **Weekly Report**: Export failures for analysis
-   ```bash
-   python scripts/get_github_failures.py --last 100 --export weekly_failures.json
-   ```
-
-4. **CI Integration**: Add to your CI pipeline
-   ```yaml
-   - name: Check Recent Failures
-     run: |
-       python scripts/quick_failures.py 5
-   ```
-
-## 🛠️ Troubleshooting
-
-### "Could not detect GitHub repository"
-Run the script from inside a git repository, or specify the repo:
-```bash
-python scripts/get_github_failures.py --repo owner/repo
-```
-
-### "API rate limit exceeded"
-Set a GitHub token:
-```bash
-export GITHUB_TOKEN="ghp_your_token_here"
-```
-
-### "No failures found"
-Great! Your CI is working perfectly! 🎉
-
-## 📝 Script Comparison
-
-| Script | Language | Features | Best For |
-|--------|----------|----------|----------|
-| `quick_failures.py` | Python | Minimal, fast | Quick checks |
-| `failures.sh` | Bash | Uses gh CLI if available | Terminal users |
-| `get_github_failures.py` | Python | Full featured, export | Detailed analysis |
+1. **Regular Monitoring**: Run `bin/failures` daily to catch patterns
+2. **Export for Analysis**: Use JSON export for trend analysis
+3. **CI/CD Alerts**: Configure webhooks for immediate notification
+4. **Token Security**: Never commit tokens, use `.env` or GitHub Secrets
 
 ---
 
-Pro tip: Add an alias to your shell config:
-```bash
-alias failures="python ~/path/to/scripts/quick_failures.py"
-```
-
-Then just type `failures` to check recent CI failures!
+*Last updated: 2025-08-07*
