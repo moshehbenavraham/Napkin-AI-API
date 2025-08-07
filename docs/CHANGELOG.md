@@ -3,6 +3,34 @@
 All notable changes to this project are documented in this file.
 The format follows Keep a Changelog, and the project aims to follow Semantic Versioning.
 
+## [0.2.0] - 2025-08-07
+
+### Added
+- 🌐 **Streamlit Web Interface** - Interactive web application for visual generation
+  - Real-time visual generation with progress indicators
+  - Interactive style browser with categories and descriptions
+  - Support for all 15+ visual styles with filtering
+  - PNG/SVG format selection with custom dimensions
+  - Multiple variations support (1-4 visuals)
+  - Direct download buttons for generated visuals
+  - Responsive layout for desktop and mobile
+- Thread-safe async execution with dedicated event loop
+- Enhanced error handling and validation in web UI
+- Streamlit configuration with custom theme (.streamlit/config.toml)
+- Resolution display with megapixel calculation
+- 16MP safety cap for large images
+
+### Changed
+- Updated Python version requirement to 3.10+ for better compatibility with Streamlit and Dependabot
+- Improved README.md with web interface documentation
+- Enhanced project architecture to support both CLI and web interfaces
+- Updated roadmap to reflect Phase 2 completion
+
+### Fixed
+- Fixed STYLES dictionary access in streamlit_app.py to use NamedTuple attributes
+- Added proper error handling for empty STYLES or categories
+- Implemented sanitize_filename for safe file downloads
+
 ## [0.1.3] - 2025-01-07
 
 ### Fixed

@@ -39,14 +39,18 @@ def run_generation_in_worker(api_token: str, content: str, selected_style: str, 
         async def _gen():
             settings = Settings(napkin_api_token=api_token)
             async with VisualGenerator(settings) as generator:
-                return await generator.generate(
+                # generate returns a tuple of (StatusResponse, List[Path])
+                # We only need the StatusResponse which has the files URLs
+                status_response, _ = await generator.generate(
                     content=content,
                     style=selected_style,
                     format=format_type,
                     width=width,
                     height=height,
-                    variations=variations
+                    variations=variations,
+                    save_files=False  # Don't save to disk, just get URLs
                 )
+                return status_response
         loop = asyncio.new_event_loop()
         try:
             asyncio.set_event_loop(loop)
@@ -197,7 +201,23 @@ if generate_button:
                     variations=variations
                 )
 
-                st.success(f"✅ Successfully generated {len(result.files)} visual(s)!")
+                # Extract URLs from the files attribute
+                file_urls = []
+                if hasattr(result, 'files') and result.files:
+                    for file_info in result.files:
+                        if isinstance(file_info, dict):
+                            # Handle dict format: {id, url, format, etc.}
+                            if 'url' in file_info:
+                                file_urls.append(file_info['url'])
+                        elif isinstance(file_info, str):
+                            # Handle direct URL strings
+                            file_urls.append(file_info)
+                
+                if not file_urls:
+                    st.error("No files were generated. Please try again.")
+                    st.stop()
+                
+                st.success(f"✅ Successfully generated {len(file_urls)} visual(s)!")
 
                 st.divider()
                 st.subheader("🖼️ Generated Visuals")
@@ -206,7 +226,7 @@ if generate_button:
                 grid_cols = 1 if variations == 1 else min(variations, 3)
                 cols = st.columns(grid_cols)
 
-                for idx, file_url in enumerate(result.files):
+                for idx, file_url in enumerate(file_urls):
                     target_col = cols[0] if grid_cols == 1 else cols[idx % grid_cols]
                     with target_col:
                         try:
@@ -237,7 +257,7 @@ if generate_button:
                         "format": format_type,
                         "variations": variations,
                         "dimensions": f"{width}x{height}" if width else "SVG (scalable)",
-                        "files_generated": len(result.files)
+                        "files_generated": len(file_urls)
                     })
 
             except Exception as e:

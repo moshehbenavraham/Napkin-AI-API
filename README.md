@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Python](https://img.shields.io/badge/python-3.9%2B-blue?style=for-the-badge&logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue?style=for-the-badge&logo=python&logoColor=white)
 ![Poetry](https://img.shields.io/badge/Poetry-2.0%2B-60A5FA?style=for-the-badge&logo=poetry&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
 ![Version](https://img.shields.io/badge/version-0.1.3-purple?style=for-the-badge)
@@ -18,7 +18,7 @@
 
 ## 🚀 What is Napkin AI API Playground?
 
-A powerful Python CLI and async client library that seamlessly transforms your text into professional-grade visuals using the Napkin AI API. Built with modern Python practices, it features robust error handling, intelligent retries, and a delightful developer experience.
+A powerful Python toolkit featuring both a **web interface** and **CLI** that seamlessly transforms your text into professional-grade visuals using the Napkin AI API. Built with modern Python practices, it features robust error handling, intelligent retries, and a delightful developer experience.
 
 ### 🎯 Perfect for:
 - 📊 **Data Scientists** - Visualize complex concepts instantly
@@ -32,23 +32,23 @@ A powerful Python CLI and async client library that seamlessly transforms your t
 <tr>
 <td>
 
+### 🌐 Web Interface
+Interactive Streamlit app for easy visual generation
+
 ### 🎨 15+ Visual Styles
 Choose from vibrant, sketch, corporate, minimalist, and more
 
 ### 📐 Flexible Output
 Generate SVG for scalability or PNG with custom dimensions
 
-### ⚡ Async Performance
-Built on httpx with intelligent retry logic and rate limiting
-
 </td>
 <td>
 
+### ⚡ Async Performance
+Built on httpx with intelligent retry logic and rate limiting
+
 ### 🛡️ Type-Safe
 Full Pydantic v2 validation and mypy type checking
-
-### 🎯 Smart Defaults
-Production-ready configuration out of the box
 
 ### 📊 Rich Terminal UI
 Beautiful progress bars and formatted output with Rich
@@ -78,7 +78,17 @@ cp .env.example .env
 # Edit .env and set: NAPKIN_API_TOKEN=your_token_here
 ```
 
-### 3️⃣ Generate!
+### 3️⃣ Run!
+
+#### 🖥️ Web Interface (NEW!)
+```bash
+# Launch the Streamlit web app
+poetry run streamlit run streamlit_app.py
+
+# App opens at http://localhost:8501
+```
+
+#### 💻 Command Line
 ```bash
 # Your first visual
 poetry run napkin generate "Machine Learning Pipeline"
@@ -151,7 +161,7 @@ napkin version
 
 ```mermaid
 graph TD
-    A[CLI Layer] -->|Typer + Rich| B[Core Generator]
+    A[Web UI / CLI] -->|Streamlit / Typer| B[Core Generator]
     B --> C[API Client]
     C -->|httpx + tenacity| D[Napkin API]
     B --> E[Pydantic Models]
@@ -175,7 +185,8 @@ napkin-api-playground/
 ├── 🧪 tests/            # Comprehensive test suite
 ├── 📚 docs/             # Documentation
 ├── 🎨 data/             # Generated visuals
-└── 🚀 main.py           # Entry point
+├── 🌐 streamlit_app.py  # Web interface
+└── 🚀 main.py           # CLI entry point
 ```
 
 </details>
@@ -291,11 +302,16 @@ We love contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guideli
 - [x] Async operations
 - [x] Comprehensive testing
 
-### 🚧 Phase 2: Enhanced Features (Coming Soon)
-- [ ] Interactive style browser
+### ✅ Phase 2: Web Interface (Complete)
+- [x] Streamlit web application
+- [x] Interactive style browser
+- [x] Real-time visual generation
+- [x] Download functionality
+
+### 🚧 Phase 3: Enhanced Features (Coming Soon)
 - [ ] Batch processing
-- [ ] Local gallery
-- [ ] Web UI
+- [ ] Local gallery with SQLite
+- [ ] CSV/JSON import
 
 ### 🔮 Future
 - [ ] Custom style creation
