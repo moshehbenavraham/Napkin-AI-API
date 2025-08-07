@@ -253,24 +253,37 @@ napkin generate "Architecture" \
   --inverted-color
 ```
 
-## 🔍 GitHub Actions Error Monitoring
+## 🔍 CI/CD & Monitoring
 
-### 📊 Built-in CI/CD Monitoring
+### 📊 GitHub Actions Integration
 
-Our project includes a comprehensive error monitoring system for GitHub Actions:
+Our project uses GitHub Actions for continuous integration with automated testing, linting, and deployment:
+
+- **Python 3.10, 3.11, 3.12** matrix testing
+- **Automated linting** with Ruff
+- **Type checking** with MyPy
+- **Security scanning** with Bandit
+- **Coverage reporting** with Codecov
+- **Automated notifications** on failure
+
+### 🛠️ Built-in Monitoring Tool
+
+Monitor your CI/CD pipeline with the unified `gh-monitor` tool:
 
 ```bash
-# Check recent CI failures
-bin/failures
+# Monitor recent failures
+bin/gh-monitor          # Show last 5 failures
+bin/gh-monitor 10       # Show last 10 failures
 
-# Check last 10 failures
-bin/failures 10
+# Analyze failures in detail
+bin/gh-monitor analyze  # Detailed analysis with error messages
 
-# Export failures to JSON
-python scripts/check_failures.py 20 --json failures.json
+# Generate CI error reports
+bin/gh-monitor report   # JSON report with context
 
-# Simple one-line format
-python scripts/check_failures.py --simple
+# Export and format options
+bin/gh-monitor 20 --json failures.json  # Export to JSON
+bin/gh-monitor 10 --simple              # Simple one-line format
 ```
 
 ### 🔔 Automated Notifications
@@ -389,6 +402,33 @@ poetry run ruff check src/
 # Security scan
 poetry run bandit -r src/
 ```
+
+### 🔍 GitHub Actions Monitoring
+
+Monitor and analyze CI/CD failures with the unified monitoring tool:
+
+```bash
+# Show recent failures
+bin/gh-monitor        # Last 5 failures
+bin/gh-monitor 10     # Last 10 failures
+
+# Analyze failures in detail
+bin/gh-monitor analyze
+
+# Generate CI error report
+bin/gh-monitor report
+
+# Export to JSON
+bin/gh-monitor 5 --json failures.json
+
+# Simple one-line format
+bin/gh-monitor 10 --simple
+
+# See all options
+bin/gh-monitor --help
+```
+
+📚 [Full documentation](docs/GH_MONITOR.md)
 
 ### 📊 Code Quality Metrics
 

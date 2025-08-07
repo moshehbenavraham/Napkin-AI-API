@@ -642,7 +642,8 @@ deploy_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 st.markdown(
     f"<div style='text-align: center; color: #888;'>"
     f"Powered by <a href='https://napkin.ai'>Napkin AI</a> | "
-    f"Built with <a href='https://streamlit.io'>Streamlit</a><br>"
+    f"Built with <a href='https://streamlit.io'>Streamlit</a> | "
+    f"<a href='https://github.com/moshehbenavraham/Napkin-AI-API'>GitHub Open Source</a><br>"
     f"<small>{version_info} | Last updated: {deploy_time}</small>"
     f"</div>",
     unsafe_allow_html=True,

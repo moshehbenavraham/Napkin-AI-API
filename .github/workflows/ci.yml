@@ -128,11 +128,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Report Failure
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      
+      - name: Generate Error Report
         run: |
-          python3 .github/scripts/error_reporter.py
+          python3 scripts/gh_monitor.py report --json error_report.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Send Slack Notification
+        if: env.SLACK_WEBHOOK != ''
+        run: |
+          python3 scripts/gh_monitor.py report --webhook ${{ secrets.SLACK_WEBHOOK }} --webhook-type slack
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Send Discord Notification
+        if: env.DISCORD_WEBHOOK != ''
+        run: |
+          python3 scripts/gh_monitor.py report --webhook ${{ secrets.DISCORD_WEBHOOK }} --webhook-type discord
+        env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          CREATE_GITHUB_ISSUE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -168,6 +168,23 @@ except APIError as e:
 - CLI commands and options
 - Model validation
 
+### CI/CD Monitoring
+
+Before submitting a PR, check the CI status:
+
+```bash
+# Check recent CI failures
+bin/gh-monitor
+
+# Analyze any failures in detail
+bin/gh-monitor analyze
+
+# Ensure all tests pass locally
+poetry run pytest
+poetry run mypy src/
+poetry run ruff check src/
+```
+
 ### Example Test
 
 ```python
