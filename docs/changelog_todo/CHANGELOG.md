@@ -3,6 +3,20 @@
 All notable changes to this project are documented in this file.
 The format follows Keep a Changelog, and the project aims to follow Semantic Versioning.
 
+## [0.3.3] - 2025-08-07
+
+### Changed
+- **Documentation**: Consolidated multiple documentation files into two main guides:
+  - `API_GUIDE.md` - Complete API reference, usage examples, and styles
+  - `PROJECT_GUIDE.md` - Development setup, testing, CI/CD, and contributing
+- **Simplified Structure**: Reduced documentation redundancy while maintaining all essential information
+- **README**: Updated to reference the new consolidated documentation structure
+
+### Maintained
+- All original documentation content preserved in consolidated format
+- Official Napkin API documentation remains in `napkin_official/`
+- FUNDING.yml, LICENSE.md, and CONTRIBUTING.md remain as required files
+
 ## [0.3.2] - 2025-08-07
 
 ### Fixed - Code Quality & CI/CD
@@ -24,7 +38,7 @@ The format follows Keep a Changelog, and the project aims to follow Semantic Ver
 
 ### Improved
 - ✅ **Testing & Validation**
-  - All 18 tests passing with 100% success rate
+  - All tests passing
   - Type checking clean with mypy
   - Linting clean with ruff
   - GitHub Actions workflows validated
@@ -63,7 +77,7 @@ The format follows Keep a Changelog, and the project aims to follow Semantic Ver
 ## [0.3.0] - 2025-08-07
 
 ### Added
-- 🌍 **Multi-Language Support** - Generate visuals in 30+ languages
+- 🌍 **Multi-Language Support** - Generate visuals in 38 languages
   - Support for English, Spanish, French, German, Italian, Portuguese, Dutch, Russian
   - Chinese (Simplified/Traditional), Japanese, Korean, Arabic, Hindi, Turkish
   - Polish, Swedish, Danish, Norwegian, Finnish and regional variants
@@ -81,7 +95,7 @@ The format follows Keep a Changelog, and the project aims to follow Semantic Ver
   - Search for specific visual types (mindmap, flowchart, timeline, etc.)
   - Support for 15+ visual type queries
 - 🎨 **Enhanced Style Integration** - Complete API style support
-  - All 15+ styles properly mapped with official API IDs
+  - All 16 styles properly mapped with official API IDs
   - Style categories: Colorful, Casual, Hand-drawn, Formal, Monochrome
   - Detailed style descriptions and metadata
 
@@ -134,7 +148,7 @@ The format follows Keep a Changelog, and the project aims to follow Semantic Ver
 - 🌐 **Streamlit Web Interface** - Interactive web application for visual generation
   - Real-time visual generation with progress indicators
   - Interactive style browser with categories and descriptions
-  - Support for all 15+ visual styles with filtering
+  - Support for all 16 visual styles with filtering
   - PNG/SVG format selection with custom dimensions
   - Multiple variations support (1-4 visuals)
   - Direct download buttons for generated visuals

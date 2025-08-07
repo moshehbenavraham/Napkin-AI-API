@@ -17,8 +17,8 @@
 ### 📊 Project Stats
 
 ![GitHub Actions](https://img.shields.io/badge/CI%2FCD-Passing-brightgreen?style=for-the-badge&logo=githubactions&logoColor=white)
-![Tests](https://img.shields.io/badge/Tests-18%20Passing-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)
-![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)
+![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)
+![Coverage](https://img.shields.io/badge/Coverage-TBD-yellow?style=for-the-badge&logo=codecov&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge&logo=opensourceinitiative&logoColor=white)
 
 ### 🔧 Code Quality
@@ -30,8 +30,8 @@
 
 ### 🌟 Features
 
-![Languages](https://img.shields.io/badge/Languages-30%2B-4285F4?style=for-the-badge&logo=googletranslate&logoColor=white)
-![Styles](https://img.shields.io/badge/Visual%20Styles-15%2B-FF6B6B?style=for-the-badge&logo=adobe&logoColor=white)
+![Languages](https://img.shields.io/badge/Languages-38-4285F4?style=for-the-badge&logo=googletranslate&logoColor=white)
+![Styles](https://img.shields.io/badge/Visual%20Styles-16-FF6B6B?style=for-the-badge&logo=adobe&logoColor=white)
 ![API](https://img.shields.io/badge/API-Async-00D084?style=for-the-badge&logo=fastapi&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
@@ -86,7 +86,7 @@ A **production-ready** Python toolkit featuring both a **🌐 Streamlit web inte
 ### 🌐 Streamlit Web Interface
 - **Interactive UI** with real-time generation
 - **Live preview** of all visual styles
-- **Multi-language support** (30+ languages)
+- **Multi-language support** (38 languages)
 - **Advanced options** panel
 - **Download manager** for all formats
 - **Mobile-responsive** design
@@ -96,8 +96,8 @@ A **production-ready** Python toolkit featuring both a **🌐 Streamlit web inte
 
 ### 💻 Powerful CLI
 - **Full-featured** command line tool
-- **Batch processing** capabilities
-- **JSON/CSV export** options
+- **Single visual generation**
+- **JSON export** options
 - **Rich terminal** output
 - **Progress tracking** with spinners
 - **Configuration management**
@@ -107,7 +107,7 @@ A **production-ready** Python toolkit featuring both a **🌐 Streamlit web inte
 <tr>
 <td>
 
-### 🎨 15+ Visual Styles
+### 🎨 16 Visual Styles
 - **Vibrant** - Bold, energetic visuals
 - **Sketch** - Hand-drawn aesthetics
 - **Corporate** - Professional graphics
@@ -205,7 +205,7 @@ poetry run napkin generate "Workflow" --json output.json
 
 ### 🌍 Multi-Language Support
 
-Generate visuals in 30+ languages with proper BCP 47 language tags:
+Generate visuals in 38 languages using BCP 47 language tags:
 
 ```bash
 # Spanish
@@ -335,13 +335,9 @@ GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 | Document | Description | Badge |
 |----------|-------------|-------|
-| 📘 [SETUP.md](docs/SETUP.md) | Installation guide | ![Setup](https://img.shields.io/badge/Setup-Guide-blue?style=flat-square) |
-| 📗 [USAGE.md](docs/USAGE.md) | Usage examples | ![Usage](https://img.shields.io/badge/Usage-Examples-green?style=flat-square) |
-| 📙 [API_REFERENCE.md](docs/API_REFERENCE.md) | API documentation | ![API](https://img.shields.io/badge/API-Reference-orange?style=flat-square) |
-| 📕 [CHANGELOG.md](docs/CHANGELOG.md) | Version history | ![Changelog](https://img.shields.io/badge/Changelog-v0.3.2-purple?style=flat-square) |
-| 🔐 [SECURITY.md](docs/SECURITY.md) | Security guidelines | ![Security](https://img.shields.io/badge/Security-Guidelines-red?style=flat-square) |
-| 🌐 [WEB_APP_FEATURES.md](docs/WEB_APP_FEATURES.md) | Streamlit features | ![Streamlit](https://img.shields.io/badge/Streamlit-Features-FF4B4B?style=flat-square) |
-| 🔔 [GITHUB_ERROR_MONITORING.md](docs/GITHUB_ERROR_MONITORING.md) | CI/CD monitoring | ![Monitoring](https://img.shields.io/badge/CI%2FCD-Monitoring-2088FF?style=flat-square) |
+| 📘 [API Guide](docs/API_GUIDE.md) | Complete API reference & usage | ![API](https://img.shields.io/badge/API-Guide-blue?style=flat-square) |
+| 📗 [Project Guide](docs/PROJECT_GUIDE.md) | Development, testing & contributing | ![Project](https://img.shields.io/badge/Project-Guide-green?style=flat-square) |
+| 📙 [Official API Docs](docs/napkin_official/NAPKIN_AI_API.md) | Napkin's official API documentation | ![Official](https://img.shields.io/badge/Official-Docs-orange?style=flat-square) |
 
 ## 🏗️ Architecture
 
@@ -365,16 +361,16 @@ graph TD
 
 ```
 napkin-api-playground/
-├── 📱 streamlit_app.py     # Web interface (600+ lines)
+├── 📱 streamlit_app.py     # Web interface (650 lines)
 ├── 🚀 main.py              # CLI entry point
 ├── 🔧 bin/
-│   └── failures            # Error monitoring tool
+│   └── gh-monitor          # GitHub Actions monitoring tool
 ├── 📁 src/
 │   ├── 🔌 api/            # Async API client & models
 │   ├── 💻 cli/            # CLI commands & display
 │   ├── ⚙️ core/           # Generation orchestration
 │   └── 🔧 utils/          # Config & helpers
-├── 🧪 tests/              # 18 comprehensive tests
+├── 🧪 tests/              # Test suite
 ├── 📚 docs/               # Complete documentation
 ├── 🔍 scripts/            # Monitoring & utilities
 └── 🎨 data/               # Generated visuals
@@ -387,7 +383,7 @@ napkin-api-playground/
 ### 🔬 Testing & Quality
 
 ```bash
-# Run all tests (18 tests)
+# Run all tests
 poetry run pytest
 
 # With coverage report
@@ -437,11 +433,11 @@ bin/gh-monitor --help
 <tr>
 <td align="center">
 <b>Tests</b><br>
-<img src="https://img.shields.io/badge/18-passing-brightgreen?style=flat-square" />
+<img src="https://img.shields.io/badge/passing-brightgreen?style=flat-square" />
 </td>
 <td align="center">
 <b>Coverage</b><br>
-<img src="https://img.shields.io/badge/100%25-covered-brightgreen?style=flat-square" />
+<img src="https://img.shields.io/badge/TBD-yellow?style=flat-square" />
 </td>
 <td align="center">
 <b>Type Safety</b><br>
@@ -470,7 +466,7 @@ bin/gh-monitor --help
 - ✅ **Python 3.10+** compatibility
 
 ### 🎨 Web Interface (v0.3.0)
-- 🌍 **30+ languages** with BCP 47 tags
+- 🌍 **38 languages** with BCP 47 tags
 - 📋 **Context options** for better visuals
 - 🎯 **Advanced settings** panel
 - 🔄 **Visual regeneration** feature
@@ -512,7 +508,7 @@ We love contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guideli
 
 - [x] Core API integration
 - [x] CLI with all parameters
-- [x] 15+ styles support
+- [x] 16 styles support
 - [x] Async operations
 - [x] Comprehensive testing
 
@@ -530,23 +526,12 @@ We love contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guideli
 
 </details>
 
-<details>
-<summary>✅ <b>Phase 3: Production Ready</b></summary>
-
-- [x] CI/CD pipeline
-- [x] Error monitoring
-- [x] Automated notifications
-- [x] Security scanning
-- [x] 100% test coverage
-- [x] Documentation complete
-
-</details>
 
 ### 🚧 Upcoming Features
 
-- [ ] **Batch Processing** - Process multiple visuals from CSV/JSON
-- [ ] **Gallery Mode** - Local SQLite gallery with search
-- [ ] **Custom Styles** - Create and save custom visual styles
+- [ ] **Phase 3: Batch Processing** - Process multiple visuals from CSV/JSON
+- [ ] **Phase 4: Gallery Mode** - Local SQLite gallery with search
+- [ ] **Phase 5: Custom Styles** - Create and save custom visual styles
 - [ ] **Team Collaboration** - Share visuals with team members
 - [ ] **Cloud Integration** - S3/GCS storage support
 - [ ] **API Webhooks** - Real-time generation notifications
