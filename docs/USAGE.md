@@ -1,19 +1,78 @@
 # Usage Guide
 
 Overview
-This guide documents the CLI that is implemented today. Any commands not listed here are not available. Some features referenced in PRD (interactive TUI, batch engine, gallery, web UI) are roadmap items and not yet part of the CLI.
+This guide documents both the Web Interface (Streamlit) and CLI that are implemented today. Any commands not listed here are not available. Some features referenced in PRD (interactive TUI, batch engine, gallery) are roadmap items and not yet implemented.
 
 Note: All examples below assume you're using Poetry. If you've activated the virtual environment with `source .venv/bin/activate`, you can omit `poetry run` from the commands.
 
 Quick Reference
 
-Available Commands:
-- `napkin generate` - Create visuals from text
-- `napkin styles` - Browse and list visual styles  
-- `napkin config` - Manage configuration settings
-- `napkin version` - Show version information
+Available Interfaces:
+- **Web Interface** - Interactive Streamlit application for visual generation
+- **CLI** - Command-line interface with the following commands:
+  - `napkin generate` - Create visuals from text
+  - `napkin styles` - Browse and list visual styles  
+  - `napkin config` - Manage configuration settings
+  - `napkin version` - Show version information
 
-CLI Basics
+## Web Interface (Streamlit)
+
+### Starting the Web Interface
+```bash
+# Set your API token (get one from https://napkin.ai)
+export NAPKIN_API_TOKEN="your_actual_token_here"
+
+# Launch the web application
+poetry run streamlit run streamlit_app.py
+
+# The app will open in your browser at http://localhost:8501
+```
+
+### Using the Web Interface
+
+1. **API Token Setup**
+   - Set via environment variable (recommended): `export NAPKIN_API_TOKEN="your_token"`
+   - Or enter directly in the sidebar password field
+
+2. **Generate Visuals**
+   - Enter your content in the main text area
+   - Select a style category and specific style from the sidebar
+   - Choose output format (SVG or PNG)
+   - For PNG, set custom dimensions (100-4096 pixels)
+   - Adjust number of variations (1-4)
+   - Click "🚀 Generate Visual"
+
+3. **Download Results**
+   - View generated visuals directly in the browser
+   - Click download buttons to save locally
+   - Files are named with style and variation number
+
+### Web Interface Features
+- **Interactive Style Browser**: Browse 15+ styles organized by category
+- **Real-time Generation**: See progress indicators during generation
+- **Multiple Variations**: Generate up to 4 variations at once
+- **Custom Dimensions**: Set PNG width/height with megapixel display
+- **Direct Downloads**: One-click download for each generated visual
+- **Error Handling**: Clear error messages with troubleshooting details
+
+### Troubleshooting Web Interface
+
+**"StatusResponse" object has no field "downloaded_files" error**
+- Fixed in v0.2.2 - update to latest version
+- Run `git pull` to get the latest fixes
+
+**Port already in use error**
+```bash
+# Try a different port
+poetry run streamlit run streamlit_app.py --server.port 8502
+```
+
+**API token not working**
+- Ensure token is correctly set: `echo $NAPKIN_API_TOKEN`
+- Try entering token directly in the sidebar
+- Verify token at https://napkin.ai
+
+## CLI Basics
 
 Basic Generation
 ```bash
@@ -131,23 +190,30 @@ Troubleshooting
 - Rate limit exceeded: Wait for Retry-After seconds and try again.
 
 FAQ
-Q: Where are files saved?
-A: By default under the configured storage path (see NAPKIN_STORAGE_PATH, defaults to ./data/visuals). You can override with --output.
 
-Q: How do I find available style names?
-A: Use `poetry run napkin styles --list` or consult the styles table in docs/NAPKIN_AI_API.md. Named styles are mapped to API IDs internally.
+**Q: Which interface should I use - Web or CLI?**
+A: Use the Web Interface for interactive exploration and visual feedback. Use the CLI for automation, scripting, or integration into workflows.
 
-Q: Can I pass a custom style ID?
-A: Yes, pass the raw style ID via --style; it will be used as-is.
+**Q: Where are files saved?**
+A: CLI saves to the configured storage path (NAPKIN_STORAGE_PATH, defaults to ./data/visuals). Web Interface provides direct downloads to your browser's download folder.
 
-Q: How many variations can I request?
-A: 1 to 4. The CLI validates the range.
+**Q: How do I find available style names?**
+A: Web Interface has an interactive style browser. For CLI, use `poetry run napkin styles --list` or consult the styles table in docs/NAPKIN_AI_API.md.
 
-Q: Why use `poetry run` before every command?
+**Q: Can I pass a custom style ID?**
+A: Yes in CLI, pass the raw style ID via --style. The Web Interface currently only supports built-in styles.
+
+**Q: How many variations can I request?**
+A: 1 to 4 in both interfaces.
+
+**Q: Why use `poetry run` before every command?**
 A: Poetry 2.0 requires this to run commands in the virtual environment. Alternatively, activate the environment first with `source .venv/bin/activate`.
 
-Q: Can I use the CLI without Poetry?
-A: Yes, use `python main.py` instead of `napkin` after installing dependencies with pip.
+**Q: Can I use without Poetry?**
+A: Yes, use `python main.py` for CLI or `python -m streamlit run streamlit_app.py` for Web after installing dependencies with pip.
+
+**Q: Can I run both Web and CLI at the same time?**
+A: Yes, they are independent interfaces. The Web Interface runs on a local server while CLI runs in your terminal.
 
 Accessibility and i18n
 - Language is provided in BCP 47 format (e.g., en-US).

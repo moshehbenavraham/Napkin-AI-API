@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue?style=for-the-badge&logo=python&logoColor=white)
 ![Poetry](https://img.shields.io/badge/Poetry-2.0%2B-60A5FA?style=for-the-badge&logo=poetry&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
-![Version](https://img.shields.io/badge/version-0.2.1-purple?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-0.2.2-purple?style=for-the-badge)
 ![Status](https://img.shields.io/badge/status-MVP%20Complete-success?style=for-the-badge)
 
 **Transform text into stunning visuals with the power of AI** ✨
@@ -82,10 +82,14 @@ cp .env.example .env
 
 #### 🖥️ Web Interface (NEW!)
 ```bash
+# Set your API token (get one from https://napkin.ai)
+export NAPKIN_API_TOKEN="your_actual_token_here"
+
 # Launch the Streamlit web app
 poetry run streamlit run streamlit_app.py
 
 # App opens at http://localhost:8501
+# You can also enter the token directly in the app's sidebar
 ```
 
 #### 💻 Command Line
@@ -302,13 +306,14 @@ We love contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guideli
 - [x] Async operations
 - [x] Comprehensive testing
 
-### ✅ Phase 2: Web Interface (Complete - v0.2.1)
+### ✅ Phase 2: Web Interface (Complete - v0.2.2)
 - [x] Streamlit web application
 - [x] Interactive style browser
 - [x] Real-time visual generation
 - [x] Download functionality
 - [x] Authenticated file downloads
 - [x] Error handling and recovery
+- [x] Fixed Pydantic model field access issues
 
 ### 🚧 Phase 3: Enhanced Features (Coming Soon)
 - [ ] Batch processing
@@ -334,6 +339,10 @@ See [SECURITY.md](docs/SECURITY.md) for full security practices.
 ## 🐛 Troubleshooting
 
 ### Web Interface Issues
+
+**"StatusResponse" object has no field "downloaded_files" error**
+- Fixed in v0.2.2 - update to latest version
+- The app now properly handles Pydantic model constraints
 
 **403 Forbidden errors when viewing generated images**
 - Fixed in v0.2.1 - update to latest version

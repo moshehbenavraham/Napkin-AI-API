@@ -468,9 +468,9 @@ def get_git_info() -> str:
         branch = subprocess.check_output(
             ["git", "branch", "--show-current"], text=True
         ).strip()
-        return f"v0.2.1 | {branch}@{commit}"
+        return f"v0.2.2 | {branch}@{commit}"
     except Exception:
-        return "v0.2.1"
+        return "v0.2.2"
 
 
 version_info = get_git_info()

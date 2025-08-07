@@ -3,6 +3,19 @@
 All notable changes to this project are documented in this file.
 The format follows Keep a Changelog, and the project aims to follow Semantic Versioning.
 
+## [0.2.2] - 2025-08-07
+
+### Fixed
+- 🐛 **Fixed Pydantic Model Field Access** - Resolved "StatusResponse object has no field downloaded_files" error
+  - Changed from attempting to dynamically add attributes to Pydantic models (not allowed)
+  - Now returns tuple (status_response, downloaded_files) from worker function
+  - Properly handles tuple unpacking in main generation flow
+  - Maintains backward compatibility with existing file display logic
+
+### Improved
+- Enhanced documentation with clearer local testing instructions
+- Added explicit API token setup steps in README
+
 ## [0.2.1] - 2025-08-07
 
 ### Fixed
