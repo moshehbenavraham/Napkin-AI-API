@@ -1,4 +1,4 @@
-"""  
+"""
 Napkin AI API client with async support and retry logic.
 
 Provides a robust HTTP client for interacting with the Napkin API,
