@@ -16,7 +16,7 @@ httpx = "^0.28.1"
 pydantic = "^2.12"
 pydantic-settings = "^2.13"
 typer = {extras = ["all"], version = "^0.24.1"}
-rich = "^13.0"
+rich = ">=13,<16"
 python-dotenv = "^1.2"
 tenacity = "^9.1"
 aiofiles = "^24.1"
