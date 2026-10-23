@@ -32,3 +32,8 @@ pre-commit = "^4.5"
 
 [tool.poetry.scripts]
 napkin = "src.cli.commands:app"
+
+[tool.ruff.lint]
+# ruff 0.16 expanded its default rule set (UP/BLE/I/PIE/...); keep the
+# pre-0.16 defaults this repo has always linted against. Opt into more later.
+select = ["E4", "E7", "E9", "F"]
